@@ -1449,7 +1449,7 @@
                             </div>
                             <p id="type-help-text" class="small text-muted mt-2 fst-italic mb-0">* Las opciones dependen de si el día es lectivo o no.</p>
                         </div>
-                        <button onclick="window.app.submitRequest()" class="btn btn-primary fw-bold w-100">Introducir Solicitud</button>
+                        <button id="btn-submit-request" onclick="window.app.submitRequest()" class="btn btn-primary fw-bold w-100">Introducir Solicitud</button>
                         <div id="bulk-action-container" class="hidden mt-3 pt-3 border-top">
                             <button onclick="window.app.submitBulkRequest()" class="btn w-100 fw-bold d-flex align-items-center justify-content-center gap-2 text-white" style="background-color: #7e22ce;">
                                 <i data-lucide="users" style="width:16px"></i> Añadir a todo el Claustro
@@ -2784,6 +2784,63 @@
             document.getElementById('modal-request').classList.remove('hidden');
         };
 
+        // ================================================
+        // FEEDBACK VISUAL DEL BOTÓN DE GUARDADO
+        // Estados: saving → saved → idle  |  error → idle
+        // ================================================
+
+        let _submitBtnTimer = null;
+
+        function _setSubmitBtnState(btn, state) {
+            if (!btn) return;
+            if (_submitBtnTimer) { clearTimeout(_submitBtnTimer); _submitBtnTimer = null; }
+
+            const defaults = {
+                text: 'Introducir Solicitud',
+                cls: 'btn btn-primary fw-bold w-100',
+                disabled: false,
+                html: ''
+            };
+
+            const states = {
+                saving: {
+                    text: 'Guardando...',
+                    cls: 'btn btn-warning fw-bold w-100',
+                    disabled: true,
+                    html: '<i data-lucide="loader" style="width:16px;height:16px;animation:spin 1s linear infinite;" class="me-1"></i> Guardando...'
+                },
+                saved: {
+                    text: 'Guardado',
+                    cls: 'btn btn-success fw-bold w-100',
+                    disabled: false,
+                    html: '<i data-lucide="check-circle" style="width:16px;height:16px;" class="me-1"></i> Guardado'
+                },
+                error: {
+                    text: 'Error — reintentar',
+                    cls: 'btn btn-danger fw-bold w-100',
+                    disabled: false,
+                    html: '<i data-lucide="alert-triangle" style="width:16px;height:16px;" class="me-1"></i> Error — reintentar'
+                }
+            };
+
+            const s = states[state] || defaults;
+            btn.className = s.cls;
+            btn.disabled = s.disabled;
+            btn.innerHTML = s.html;
+            lucide.createIcons({ attrs: {} });
+
+            // Tras "saved" o "error", volver al estado normal
+            if (state === 'saved' || state === 'error') {
+                _submitBtnTimer = setTimeout(() => {
+                    if (btn) {
+                        btn.className = defaults.cls;
+                        btn.disabled = defaults.disabled;
+                        btn.innerHTML = defaults.text;
+                    }
+                }, 1500);
+            }
+        }
+
         window.app.deleteRequest = async (id) => {
             if (!confirm('¿Anular esta solicitud?')) return;
             try {
@@ -2794,13 +2851,14 @@
                 renderCalendar();
                 window.app.renderSummaryTable();
                 window.app.renderReportTable();
-                showNotification('Solicitud anulada');
+                showNotification('Permiso eliminado');
             } catch (e) {
                 showNotification('Error al eliminar: ' + e.message, 'error');
             }
         };
 
         window.app.submitRequest = async () => {
+            const btnSubmit = document.getElementById('btn-submit-request');
             const tid = document.getElementById('req-teacher-select').value;
             if (!tid) return alert('Selecciona profesor');
             const type = document.querySelector('input[name="reqType"]:checked')?.value;
@@ -2819,6 +2877,9 @@
             if (type === 'paid_teaching' && treqs.filter(r => r.type === 'paid_teaching').length >= maxRetDays) return alert(`Máximo ${maxRetDays} Retribuidos Lectivos.`);
             if (type === 'paid_non_teaching' && treqs.filter(r => r.type === 'paid_non_teaching').length >= 4) return alert('Máximo 4 Retribuidos No Lectivos.');
 
+            // ── Estado: guardando ──
+            _setSubmitBtnState(btnSubmit, 'saving');
+
             try {
                 const docRef = await db.collection('requests').add({
                     date: ds,
@@ -2828,11 +2889,23 @@
                 });
                 // Actualizar local inmediatamente (el listener también lo hará)
                 window.app.requests.push({ id: docRef.id, date: ds, teacherId: tid, type });
+
+                // ── Estado: guardado ✓ ──
+                _setSubmitBtnState(btnSubmit, 'saved');
+
+                // Resetear selector de profesor para permitir añadir otro rápidamente
+                document.getElementById('req-teacher-select').value = '';
+
+                // Actualizar la vista del modal y el calendario
                 window.app.openRequestModal(ds);
                 renderCalendar();
                 window.app.renderSummaryTable();
                 window.app.renderReportTable();
+
+                showNotification('Permiso guardado');
             } catch (e) {
+                // ── Estado: error ──
+                _setSubmitBtnState(btnSubmit, 'error');
                 showNotification('Error al guardar solicitud: ' + e.message, 'error');
             }
         };
@@ -2842,6 +2915,9 @@
             const ds = window.app.selectedDate;
             const type = document.querySelector('input[name="reqType"]:checked')?.value;
             if (!type) { alert('Debes seleccionar un tipo de permiso'); return; }
+
+            const btnSubmit = document.getElementById('btn-submit-request');
+            _setSubmitBtnState(btnSubmit, 'saving');
 
             let add = 0;
             const batch = db.batch();
@@ -2862,13 +2938,23 @@
                 add++;
             });
 
+            if (add === 0) {
+                _setSubmitBtnState(btnSubmit, 'error');
+                showNotification('Ningún profesor elegible', 'error');
+                return;
+            }
+
             try {
                 await batch.commit();
-                showNotification(`Añadidos: ${add}`);
+                _setSubmitBtnState(btnSubmit, 'saved');
+                showNotification(`${add} permisos guardados`);
                 // El listener actualizará los datos
                 window.app.openRequestModal(ds);
                 renderCalendar();
+                window.app.renderSummaryTable();
+                window.app.renderReportTable();
             } catch (e) {
+                _setSubmitBtnState(btnSubmit, 'error');
                 showNotification('Error: ' + e.message, 'error');
             }
         };
