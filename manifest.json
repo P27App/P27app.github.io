@@ -2,7 +2,7 @@
     "name": "Gestor de Asuntos Propios",
     "short_name": "Gestor Permisos",
     "description": "Gestión de permisos y asuntos propios del profesorado - Calendario, solicitudes e informes",
-    "start_url": "./index01_corregido.html",
+    "start_url": "./index.html",
     "scope": "./",
     "display": "standalone",
     "orientation": "any",
@@ -65,13 +65,13 @@
         {
             "name": "Calendario",
             "short_name": "Calendario",
-            "url": "./index01_corregido.html#calendar",
+            "url": "./index.html#calendar",
             "description": "Abrir el calendario de asuntos propios"
         },
         {
             "name": "Informes",
             "short_name": "Informes",
-            "url": "./index01_corregido.html#stats",
+            "url": "./index.html#stats",
             "description": "Ver informes y estadísticas"
         }
     ]
