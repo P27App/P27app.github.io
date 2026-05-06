@@ -1,14 +1,14 @@
 // ================================================
 // SERVICE WORKER — Gestor de Asuntos Propios
 // ================================================
-// DEBE COINCIDIR con APP_VERSION en index01_corregido.html
-const APP_VERSION = '2.1.0';
+// DEBE COINCIDIR con APP_VERSION en index.html
+const APP_VERSION = '2.0.0';
 const CACHE_NAME = 'gestor-permisos-v' + APP_VERSION.replace(/\./g, '-');
 
 // Recursos a pre-cachear durante la instalación
 const PRECACHE_URLS = [
     './',
-    './index01_corregido.html',
+    './index.html',
     './manifest.json',
     './icons/icon-192.png',
     './icons/icon-512.png'
@@ -106,7 +106,7 @@ self.addEventListener('fetch', (event) => {
     }
 
     // ── Recursos locales (mismo origen): Stale While Revalidate ──
-    // Sirve desde caché inmediatamente y actualiza el caché en segundo plano
+    // Sirve desde caché inmediatamente y actualiza en segundo plano
     if (url.origin === self.location.origin) {
         event.respondWith(staleWhileRevalidate(event.request));
         return;
@@ -123,6 +123,36 @@ self.addEventListener('fetch', (event) => {
 async function staleWhileRevalidate(request) {
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(request);
+
+    // ── FALLBACK DE NAVEGACIÓN: Si es una petición de navegación
+    //    (abrir la app desde escritorio, recargar, etc.) y no está
+    //    en caché, intentar la red y si falla servir index.html ──
+    if (!cachedResponse && request.mode === 'navigate') {
+        try {
+            const networkResponse = await fetch(request);
+            if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 304)) {
+                cache.put(request, networkResponse.clone());
+                return networkResponse;
+            }
+            // Si la red devuelve un error (404, 500, etc.), servir index.html desde caché
+            const fallbackResponse = await cache.match('./index.html');
+            if (fallbackResponse) {
+                return fallbackResponse;
+            }
+            return networkResponse;
+        } catch (error) {
+            // Sin conexión: servir index.html desde caché
+            const fallbackResponse = await cache.match('./index.html');
+            if (fallbackResponse) {
+                return fallbackResponse;
+            }
+            // Sin caché ni red: devolver respuesta offline
+            return new Response(
+                '<html><body><h1>Sin conexi&oacute;n</h1><p>Comprueba tu conexi&oacute;n a internet y vuelve a intentarlo.</p></body></html>',
+                { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+            );
+        }
+    }
 
     // Iniciar actualización en segundo plano (fire-and-forget)
     const fetchPromise = fetch(request)
