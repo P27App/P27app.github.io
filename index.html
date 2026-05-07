@@ -2238,6 +2238,13 @@
                         renderCalendar();
                         window.app.renderSummaryTable();
                         window.app.renderReportTable();
+
+                        // Si el modal de solicitudes está abierto, refrescarlo
+                        // para mostrar los datos actualizados sin duplicados.
+                        const modalEl = document.getElementById('modal-request');
+                        if (modalEl && !modalEl.classList.contains('hidden') && window.app.selectedDate) {
+                            window.app.openRequestModal(window.app.selectedDate);
+                        }
                     }
                 }, err => {
                     console.error('Error en listener requests:', err);
@@ -2881,14 +2888,14 @@
             _setSubmitBtnState(btnSubmit, 'saving');
 
             try {
-                const docRef = await db.collection('requests').add({
+                await db.collection('requests').add({
                     date: ds,
                     teacherId: tid,
                     type: type,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                // Actualizar local inmediatamente (el listener también lo hará)
-                window.app.requests.push({ id: docRef.id, date: ds, teacherId: tid, type });
+                // No hacemos push manual: el onSnapshot listener ya actualiza
+                // window.app.requests automáticamente, evitando duplicados.
 
                 // ── Estado: guardado ✓ ──
                 _setSubmitBtnState(btnSubmit, 'saved');
