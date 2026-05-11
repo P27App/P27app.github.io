@@ -1449,6 +1449,22 @@
                             </div>
                             <p id="type-help-text" class="small text-muted mt-2 fst-italic mb-0">* Las opciones dependen de si el día es lectivo o no.</p>
                         </div>
+                        <!-- Campo: Fecha de solicitud (para cómputo de 15 días hábiles) -->
+                        <div>
+                            <label class="form-label fw-medium mb-1" for="input-request-date">Fecha de solicitud</label>
+                            <input type="date" id="input-request-date" class="form-control" onchange="window.app.validateMinBusinessDays()">
+                            <p class="small text-muted mt-1 mb-0 fst-italic">Fecha en la que se presenta la solicitud. Se requiere un mínimo de 15 días hábiles de antelación.</p>
+                        </div>
+                        <!-- Aviso de plazo mínimo de días hábiles -->
+                        <div id="notice-warning" class="hidden">
+                            <div class="alert alert-danger d-flex align-items-start gap-2 mb-0 py-2 px-3" role="alert">
+                                <i data-lucide="alert-triangle" style="width:18px; min-width:18px; color:#dc3545; margin-top:2px;"></i>
+                                <div>
+                                    <strong class="small">Plazo insuficiente</strong>
+                                    <p class="small mb-0 mt-1">La solicitud debe realizarse con al menos <strong>15 días hábiles</strong> de antelación. Actualmente faltan <strong id="notice-days-remaining">0</strong> días hábiles.</p>
+                                </div>
+                            </div>
+                        </div>
                         <button id="btn-submit-request" onclick="window.app.submitRequest()" class="btn btn-primary fw-bold w-100">Introducir Solicitud</button>
                         <div id="bulk-action-container" class="hidden mt-3 pt-3 border-top">
                             <button onclick="window.app.submitBulkRequest()" class="btn w-100 fw-bold d-flex align-items-center justify-content-center gap-2 text-white" style="background-color: #7e22ce;">
@@ -2730,6 +2746,106 @@
         // ================================================
         // SOLICITUDES DE PERMISOS
         // ================================================
+        // ================================================
+        // FUNCIÓN AUXILIAR: Contar días hábiles entre dos fechas
+        // Excluye fines de semana, festivos locales, provinciales
+        // y días no lectivos del calendario del usuario.
+        // fromDateStr y toDateStr en formato YYYY-MM-DD.
+        // Devuelve el número de días hábiles desde fromDate (exclusive)
+        // hasta toDate (exclusive).
+        // ================================================
+        window.app.countBusinessDaysBetween = (fromDateStr, toDateStr) => {
+            const cfg = window.app.config;
+            const allHolidays = new Set([
+                ...(cfg.localHolidays || []),
+                ...(cfg.provHolidays || []),
+                ...(cfg.nonTeachingDays || []),
+                ...(cfg.unavailableDays || [])
+            ]);
+
+            function parseDate(s) {
+                const p = s.split('-');
+                const d = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+                d.setHours(0, 0, 0, 0);
+                return d;
+            }
+
+            const from = parseDate(fromDateStr);
+            const to   = parseDate(toDateStr);
+
+            if (to <= from) return 0;
+
+            let count = 0;
+            const current = new Date(from);
+
+            while (current < to) {
+                const dow = current.getDay();
+                const isWeekend = (dow === 0 || dow === 6);
+                const yyyy = current.getFullYear();
+                const mm = String(current.getMonth() + 1).padStart(2, '0');
+                const dd = String(current.getDate()).padStart(2, '0');
+                const dateKey = `${yyyy}-${mm}-${dd}`;
+                const isHoliday = allHolidays.has(dateKey);
+
+                if (!isWeekend && !isHoliday) {
+                    count++;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            return count;
+        };
+
+        // ================================================
+        // FUNCIÓN: Validar plazo de 15 días hábiles y actuar
+        // sobre el aviso visual y los botones del modal.
+        // ================================================
+        window.app.validateMinBusinessDays = () => {
+            const requestDateVal = document.getElementById('input-request-date').value;
+            const ds = window.app.selectedDate;
+            const MIN_BUSINESS_DAYS = 15;
+
+            const noticeWarning      = document.getElementById('notice-warning');
+            const noticeDaysRemaining = document.getElementById('notice-days-remaining');
+            const btnSubmitRequest   = document.getElementById('btn-submit-request');
+            const bulkActionContainer = document.getElementById('bulk-action-container');
+
+            // Si no se ha introducido fecha de solicitud → bloquear
+            if (!requestDateVal) {
+                noticeWarning.classList.remove('hidden');
+                noticeDaysRemaining.innerText = '?';
+                noticeWarning.querySelector('.alert').className = 'alert alert-warning d-flex align-items-start gap-2 mb-0 py-2 px-3';
+                noticeWarning.querySelector('strong').innerText = 'Fecha de solicitud requerida';
+                noticeWarning.querySelector('p').innerText = 'Debes introducir la fecha en la que se realiza la solicitud para comprobar el plazo.';
+                btnSubmitRequest.disabled = true;
+                btnSubmitRequest.classList.add('opacity-50', 'pe-none');
+                bulkActionContainer.classList.add('hidden');
+                return;
+            }
+
+            const businessDaysLeft = window.app.countBusinessDaysBetween(requestDateVal, ds);
+
+            if (businessDaysLeft < MIN_BUSINESS_DAYS) {
+                noticeWarning.classList.remove('hidden');
+                noticeDaysRemaining.innerText = businessDaysLeft;
+                noticeWarning.querySelector('.alert').className = 'alert alert-danger d-flex align-items-start gap-2 mb-0 py-2 px-3';
+                noticeWarning.querySelector('strong').innerText = 'Plazo insuficiente';
+                noticeWarning.querySelector('p').innerHTML = 'La solicitud debe realizarse con al menos <strong>15 días hábiles</strong> de antelación. Actualmente faltan <strong>' + businessDaysLeft + '</strong> días hábiles.';
+                btnSubmitRequest.disabled = true;
+                btnSubmitRequest.classList.add('opacity-50', 'pe-none');
+                bulkActionContainer.classList.add('hidden');
+            } else {
+                noticeWarning.classList.add('hidden');
+                btnSubmitRequest.disabled = false;
+                btnSubmitRequest.classList.remove('opacity-50', 'pe-none');
+                // Restaurar visibilidad del bulk si corresponde (no lectivo)
+                const isN = (window.app.config.nonTeachingDays || []).includes(ds);
+                if (isN) {
+                    bulkActionContainer.classList.remove('hidden');
+                }
+            }
+        };
+
         window.app.openRequestModal = (ds) => {
             window.app.selectedDate = ds;
             const isN = (window.app.config.nonTeachingDays || []).includes(ds);
@@ -2788,6 +2904,18 @@
 
             const dateObj = new Date(ds + 'T12:00:00');
             document.getElementById('modal-request-title').innerText = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+            // ── Inicializar campo de fecha de solicitud a hoy ──
+            const inputRequestDate = document.getElementById('input-request-date');
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            inputRequestDate.value = `${yyyy}-${mm}-${dd}`;
+
+            // ── Ejecutar validación de plazo mínimo de 15 días hábiles ──
+            window.app.validateMinBusinessDays();
+
             document.getElementById('modal-request').classList.remove('hidden');
         };
 
@@ -2872,6 +3000,15 @@
             if (!type) { alert('Debes seleccionar un tipo de permiso'); return; }
 
             const ds = window.app.selectedDate;
+            const requestDateVal = document.getElementById('input-request-date').value;
+            if (!requestDateVal) return alert('Debes introducir la fecha de solicitud.');
+
+            // ── Validación de plazo mínimo: 15 días hábiles ──
+            const businessDaysLeft = window.app.countBusinessDaysBetween(requestDateVal, ds);
+            if (businessDaysLeft < 15) {
+                return alert(`Plazo insuficiente: se requieren al menos 15 días hábiles de antelación. Desde la fecha de solicitud indicada (${requestDateVal}) faltan ${businessDaysLeft} días hábiles.`);
+            }
+
             const isN = (window.app.config.nonTeachingDays || []).includes(ds);
             if (type === 'paid_teaching' && isN) return alert('Error: Tipo lectivo en día no lectivo.');
             if (type === 'paid_non_teaching' && !isN) return alert('Error: Tipo no lectivo en día lectivo.');
@@ -2922,6 +3059,15 @@
             const ds = window.app.selectedDate;
             const type = document.querySelector('input[name="reqType"]:checked')?.value;
             if (!type) { alert('Debes seleccionar un tipo de permiso'); return; }
+
+            const requestDateVal = document.getElementById('input-request-date').value;
+            if (!requestDateVal) return alert('Debes introducir la fecha de solicitud.');
+
+            // ── Validación de plazo mínimo: 15 días hábiles ──
+            const businessDaysLeft = window.app.countBusinessDaysBetween(requestDateVal, ds);
+            if (businessDaysLeft < 15) {
+                return alert(`Plazo insuficiente: se requieren al menos 15 días hábiles de antelación. Desde la fecha de solicitud indicada (${requestDateVal}) faltan ${businessDaysLeft} días hábiles.`);
+            }
 
             const btnSubmit = document.getElementById('btn-submit-request');
             _setSubmitBtnState(btnSubmit, 'saving');
