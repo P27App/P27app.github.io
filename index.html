@@ -70,6 +70,8 @@
         .cell-weekend { background-color: #FEF2F2 !important; cursor: not-allowed; opacity: 0.8; } 
         .cell-holiday { background-color: #F3E8FF !important; cursor: not-allowed; } 
         .cell-free-disposition { background-color: #DCFCE7 !important; cursor: not-allowed; } 
+        .cell-vacation { background-color: #DBEAFE !important; }
+        .cell-vacation span { color: #1d4ed8 !important; }
         .cell-unavailable { background-color: #F1F5F9 !important; cursor: not-allowed; }  /* NUEVO: Días no disponibles */
         .cell-non-teaching { background-color: #FEF9C3 !important; cursor: not-allowed; } 
         .cell-active { box-shadow: inset 0 0 0 2px #3B82F6; }
@@ -407,6 +409,8 @@
             .cell-weekend { background-color: #e0e0e0 !important; opacity: 1 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .cell-holiday { background-color: #e8d5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; cursor: default !important; }
             .cell-free-disposition { background-color: #d1fae5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; cursor: default !important; }
+            .cell-vacation { background-color: #DBEAFE !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .cell-vacation span { color: #1d4ed8 !important; }
             .cell-unavailable { background-color: #e8e8e8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; cursor: default !important; }
             .cell-non-teaching { background-color: #fdf5c8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .cell-active { box-shadow: inset 0 0 0 1.5pt #3B82F6 !important; }
@@ -988,13 +992,41 @@
                     </div>
                 </div>
                 
-                <!-- Acordeón 5: Días de libre disposición -->
+                <!-- Acordeón 5: Períodos vacacionales -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVacPeriods" aria-expanded="false" aria-controls="collapseVacPeriods">
+                            <div class="d-flex align-items-center gap-2 w-100">
+                                <i data-lucide="palmtree" style="width:18px"></i>
+                                <span class="fw-bold">5. Períodos vacacionales</span>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapseVacPeriods" class="accordion-collapse collapse" data-bs-parent="#accordionConfig">
+                        <div class="accordion-body">
+                            <div class="card bg-white h-100">
+                                <div class="card-body p-3 d-flex flex-column gap-2">
+                                    <p class="small text-muted mb-2">Períodos vacacionales del curso (Navidad, Semana Santa, etc.). Informativos, se muestran sombreados en el calendario.</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <button onclick="window.app.clearVacationPeriods()" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openVacationPeriodModal()" class="btn btn-sm fw-bold py-0 px-2" style="background-color:#DBEAFE; color:#1d4ed8;">+ Añadir Período</button>
+                                        </div>
+                                    </div>
+                                    <div id="list-vacation-periods" class="d-flex flex-column gap-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Acordeón 6: Días de libre disposición -->
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
                             <div class="d-flex align-items-center gap-2 w-100">
                                 <i data-lucide="calendar-check" style="width:18px"></i>
-                                <span class="fw-bold">5. Días de libre disposición</span>
+                                <span class="fw-bold">6. Días de libre disposición</span>
                             </div>
                         </button>
                     </h2>
@@ -1022,7 +1054,7 @@
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
                             <div class="d-flex align-items-center gap-2 w-100">
                                 <i data-lucide="book-x" style="width:18px"></i>
-                                <span class="fw-bold">6. Días no lectivos comunicados</span>
+                                <span class="fw-bold">7. Días no lectivos comunicados</span>
                             </div>
                         </button>
                     </h2>
@@ -1050,7 +1082,7 @@
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
                             <div class="d-flex align-items-center gap-2 w-100">
                                 <i data-lucide="building" style="width:18px"></i>
-                                <span class="fw-bold">7. Días No Disponibles (trabajo en centro)</span>
+                                <span class="fw-bold">8. Días No Disponibles (trabajo en centro)</span>
                             </div>
                         </button>
                     </h2>
@@ -1078,7 +1110,7 @@
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
                             <div class="d-flex align-items-center gap-2 w-100">
                                 <i data-lucide="trash-2" style="width:18px"></i>
-                                <span class="fw-bold">8. Borrado de Datos</span>
+                                <span class="fw-bold">9. Borrado de Datos</span>
                             </div>
                         </button>
                     </h2>
@@ -1411,6 +1443,29 @@
             <div class="d-flex justify-content-end gap-2">
                 <button onclick="window.app.closeModal('modal-holiday')" class="btn btn-light btn-sm text-secondary">Cancelar</button>
                 <button onclick="window.app.confirmAddHoliday()" class="btn btn-primary btn-sm">Añadir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para añadir períodos vacacionales -->
+    <div id="modal-vacation-period" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center z-3 hidden">
+        <div class="bg-white p-4 rounded shadow w-100" style="max-width: 360px;">
+            <h3 class="h5 fw-bold mb-3">Añadir Período Vacacional</h3>
+            <label class="form-label small text-secondary fw-bold">Nombre del período:</label>
+            <input type="text" id="input-vac-name" class="form-control mb-3" placeholder="Ej: Navidad, Semana Santa...">
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label small text-secondary fw-bold">Fecha inicio:</label>
+                    <input type="date" id="input-vac-start" class="form-control">
+                </div>
+                <div class="col-6">
+                    <label class="form-label small text-secondary fw-bold">Fecha fin:</label>
+                    <input type="date" id="input-vac-end" class="form-control">
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button onclick="window.app.closeModal('modal-vacation-period')" class="btn btn-light btn-sm text-secondary">Cancelar</button>
+                <button onclick="window.app.confirmAddVacationPeriod()" class="btn btn-primary btn-sm">Añadir</button>
             </div>
         </div>
     </div>
@@ -1926,7 +1981,8 @@
                 holidays: [],
                 freeDispositionDays: [],
                 unavailableDays: [],
-                nonTeachingDays: []
+                nonTeachingDays: [],
+                vacationPeriods: []
             },
             requests: [],
             tempHolidayType: null,
@@ -2120,7 +2176,8 @@
                     holidays: [],
                     freeDispositionDays: [],
                     unavailableDays: [],
-                    nonTeachingDays: []
+                    nonTeachingDays: [],
+                    vacationPeriods: []
                 };
                 window.app.requests = [];
 
@@ -2174,9 +2231,10 @@
                         holidays: data.holidays || [...(data.localHolidays || []), ...(data.provHolidays || [])],
                         freeDispositionDays: data.freeDispositionDays || [],
                         unavailableDays: data.unavailableDays || [],
-                        nonTeachingDays: data.nonTeachingDays || []
+                        nonTeachingDays: data.nonTeachingDays || [],
+                        vacationPeriods: data.vacationPeriods || []
                     };
-                    console.log('[DIAG] Config cargada - teachers:', window.app.config.teachers.length, ', holidays:', window.app.config.holidays.length, ', freeDisposition:', window.app.config.freeDispositionDays.length, ', unavailable:', window.app.config.unavailableDays.length, ', nonTeaching:', window.app.config.nonTeachingDays.length);
+                    console.log('[DIAG] Config cargada - teachers:', window.app.config.teachers.length, ', holidays:', window.app.config.holidays.length, ', freeDisposition:', window.app.config.freeDispositionDays.length, ', unavailable:', window.app.config.unavailableDays.length, ', nonTeaching:', window.app.config.nonTeachingDays.length, ', vacationPeriods:', window.app.config.vacationPeriods.length);
 
                     // Migración: unificar festivos antiguos
                     if (!data.holidays && (data.localHolidays || data.provHolidays)) {
@@ -2294,13 +2352,14 @@
                             holidays: data.holidays || [...(data.localHolidays || []), ...(data.provHolidays || [])],
                             freeDispositionDays: data.freeDispositionDays || [],
                             unavailableDays: data.unavailableDays || [],
-                            nonTeachingDays: data.nonTeachingDays || []
+                            nonTeachingDays: data.nonTeachingDays || [],
+                            vacationPeriods: data.vacationPeriods || []
                         };
                         window.app.config.teachers.forEach(t => {
                             if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2;
                         });
                         window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
-                        console.log('[DIAG-Listener] Config actualizada - teachers:', window.app.config.teachers.length, ', holidays:', window.app.config.holidays.length, ', freeDisp:', window.app.config.freeDispositionDays.length, ', unavail:', window.app.config.unavailableDays.length, ', nonTeach:', window.app.config.nonTeachingDays.length);
+                        console.log('[DIAG-Listener] Config actualizada - teachers:', window.app.config.teachers.length, ', holidays:', window.app.config.holidays.length, ', freeDisp:', window.app.config.freeDispositionDays.length, ', unavail:', window.app.config.unavailableDays.length, ', nonTeach:', window.app.config.nonTeachingDays.length, ', vacPeriods:', window.app.config.vacationPeriods.length);
                         renderAll();
                         renderCalendar();
                         window.app.renderSummaryTable();
@@ -2463,6 +2522,7 @@
                     freeDispositionDays: window.app.config.freeDispositionDays || [],
                     unavailableDays: window.app.config.unavailableDays || [],
                     nonTeachingDays: window.app.config.nonTeachingDays || [],
+                    vacationPeriods: window.app.config.vacationPeriods || [],
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
@@ -2483,6 +2543,7 @@
                     freeDispositionDays: window.app.config.freeDispositionDays || [],
                     unavailableDays: window.app.config.unavailableDays || [],
                     nonTeachingDays: window.app.config.nonTeachingDays || [],
+                    vacationPeriods: window.app.config.vacationPeriods || [],
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
             } catch (e) {
@@ -2760,6 +2821,82 @@
             await saveConfigToFirestore();
             showNotification('Fecha añadida correctamente.');
         };
+
+        // ================================================
+        // PERÍODOS VACACIONALES
+        // ================================================
+        window.app.openVacationPeriodModal = () => {
+            document.getElementById('input-vac-name').value = '';
+            document.getElementById('input-vac-start').value = '';
+            document.getElementById('input-vac-end').value = '';
+            document.getElementById('modal-vacation-period').classList.remove('hidden');
+        };
+
+        window.app.confirmAddVacationPeriod = async () => {
+            const name = document.getElementById('input-vac-name').value.trim();
+            const start = document.getElementById('input-vac-start').value;
+            const end = document.getElementById('input-vac-end').value;
+            if (!name) return alert('Indica un nombre para el período.');
+            if (!start || !end) return alert('Indica fecha de inicio y de fin.');
+            if (start > end) return alert('La fecha de inicio debe ser anterior a la fecha de fin.');
+
+            if (!window.app.config.vacationPeriods) window.app.config.vacationPeriods = [];
+            window.app.config.vacationPeriods.push({ id: crypto.randomUUID(), name, startDate: start, endDate: end });
+            window.app.config.vacationPeriods.sort((a, b) => a.startDate.localeCompare(b.startDate));
+            window.app.closeModal('modal-vacation-period');
+            renderAll();
+            renderCalendar();
+            await saveConfigToFirestore();
+            showNotification('Período vacacional añadido: ' + name);
+        };
+
+        window.app.removeVacationPeriod = async (id) => {
+            if (!confirm('¿Eliminar este período vacacional?')) return;
+            window.app.config.vacationPeriods = (window.app.config.vacationPeriods || []).filter(p => p.id !== id);
+            renderAll();
+            renderCalendar();
+            await saveConfigToFirestore();
+            showNotification('Período vacacional eliminado');
+        };
+
+        window.app.clearVacationPeriods = async () => {
+            if (!confirm('¿Borrar TODOS los períodos vacacionales?')) return;
+            window.app.config.vacationPeriods = [];
+            renderAll();
+            renderCalendar();
+            await saveConfigToFirestore();
+            showNotification('Todos los períodos vacacionales eliminados');
+        };
+
+        function renderVacationPeriods() {
+            const container = document.getElementById('list-vacation-periods');
+            if (!container) return;
+            const periods = window.app.config.vacationPeriods || [];
+            container.innerHTML = '';
+            if (periods.length === 0) {
+                container.innerHTML = '<span class="text-secondary small fst-italic">Ninguno</span>';
+                return;
+            }
+            periods.forEach(p => {
+                const startObj = new Date(p.startDate + 'T12:00:00');
+                const endObj = new Date(p.endDate + 'T12:00:00');
+                const startFmt = startObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                const endFmt = endObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+                const div = document.createElement('div');
+                div.className = 'd-flex justify-content-between align-items-center px-3 py-2 rounded border bg-blue-50';
+                div.innerHTML = `
+                    <div class="d-flex align-items-center gap-2">
+                        <i data-lucide="palmtree" style="width:14px; color:#1d4ed8; flex-shrink:0;"></i>
+                        <div>
+                            <span class="fw-bold small">${p.name}</span>
+                            <span class="text-muted small ms-2">${startFmt} → ${endFmt}</span>
+                        </div>
+                    </div>
+                    <button onclick="window.app.removeVacationPeriod('${p.id}')" class="btn btn-link p-0 text-danger" style="flex-shrink:0;"><i data-lucide="x" style="width:14px"></i></button>`;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
 
         window.app.updateConflictSelection = (index, categoryName) => {
             const conflicts = findDateConflicts();
@@ -3232,7 +3369,8 @@
                     holidays: [],
                     freeDispositionDays: [],
                     unavailableDays: [],
-                    nonTeachingDays: []
+                    nonTeachingDays: [],
+                    vacationPeriods: []
                 };
                 window.app.requests = [];
                 await saveConfigToFirestore();
@@ -3312,6 +3450,7 @@
                     if (!window.app.config.freeDispositionDays) window.app.config.freeDispositionDays = [];
                     if (!window.app.config.unavailableDays) window.app.config.unavailableDays = [];
                     if (!window.app.config.nonTeachingDays) window.app.config.nonTeachingDays = [];
+                    if (!window.app.config.vacationPeriods) window.app.config.vacationPeriods = [];
                     if (!window.app.config.teachers) window.app.config.teachers = [];
 
                     window.app.config.teachers.forEach(t => { if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2; });
@@ -3408,6 +3547,7 @@
             renderHolidayList('freeDisposition', 'list-free-disposition-days');
             renderHolidayList('unavailable', 'list-unavailable-days');
             renderHolidayList('nonTeaching', 'list-non-teaching-days');
+            renderVacationPeriods();
             lucide.createIcons();
         }
 
@@ -3487,17 +3627,21 @@
                 const isUnavail = unavailD.has(dateStr);
                 const isNonTeach = nonTeachD.has(dateStr);
 
+                // Comprobar si la fecha cae en un período vacacional
+                const vacPeriod = (window.app.config.vacationPeriods || []).find(p => dateStr >= p.startDate && dateStr <= p.endDate);
+
                 let cellClass = 'calendar-cell';
                 if (isWeekend) cellClass += ' cell-weekend';
                 else if (isHoliday) cellClass += ' cell-holiday';
                 else if (isUnavail) cellClass += ' cell-unavailable';
                 else if (isNonTeach) cellClass += ' cell-non-teaching';
                 else if (isFreeDisp) cellClass += ' cell-free-disposition';
+                if (vacPeriod) cellClass += ' cell-vacation';
 
                 const reqs = window.app.requests.filter(r => r.date === dateStr);
                 if (reqs.length > 0) cellClass += ' cell-active';
 
-                const tooltip = buildTooltip(dateStr, isWeekend, isHoliday, isFreeDisp, isUnavail, isNonTeach, reqs);
+                const tooltip = buildTooltip(dateStr, isWeekend, isHoliday, isFreeDisp, isUnavail, isNonTeach, vacPeriod, reqs);
 
                 html += `<div class="${cellClass}" onclick="${isWeekend || isHoliday || isUnavail || isFreeDisp || isNonTeach ? '' : `window.app.openRequestModal('${dateStr}')`}" ${tooltip}>`;
                 html += `<span>${day}</span>`;
@@ -3522,13 +3666,14 @@
             return html;
         }
 
-        function buildTooltip(dateStr, isWeekend, isHoliday, isFreeDisp, isUnavail, isNonTeach, reqs) {
+        function buildTooltip(dateStr, isWeekend, isHoliday, isFreeDisp, isUnavail, isNonTeach, vacPeriod, reqs) {
             const parts = [dateStr];
             if (isWeekend) parts.push('Fin de semana');
             if (isHoliday) parts.push('Festivo');
             if (isFreeDisp) parts.push('Libre disposición');
             if (isUnavail) parts.push('No disponible (trabajo en centro)');
             if (isNonTeach) parts.push('No lectivo comunicado');
+            if (vacPeriod) parts.push('Vacaciones: ' + vacPeriod.name);
 
             reqs.forEach(r => {
                 const name = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
