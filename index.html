@@ -2200,6 +2200,15 @@
                     type: doc.data().type
                 }));
 
+                // Diagnóstico: comprobar si hay solicitudes huérfanas (sin profesor)
+                const orphanIds = [...new Set(window.app.requests.map(r => r.teacherId))];
+                console.log('[DIAG] TeacherIds únicos en solicitudes:', orphanIds.length, orphanIds);
+                if (orphanIds.length > 0 && window.app.config.teachers.length === 0) {
+                    console.warn('[DIAG] ⚠️ Hay solicitudes pero NO hay profesorado. Se mostrará aviso de recuperación.');
+                    // Guardar temporalmente para posible recuperación
+                    window.app._orphanTeacherIds = orphanIds;
+                }
+
                 // Configurar listeners en tiempo real
                 setupFirestoreListeners();
 
@@ -2220,6 +2229,32 @@
                 }
 
                 showNotification('Datos cargados desde Firebase');
+
+                // Aviso si hay solicitudes pero no profesorado
+                if (window.app._orphanTeacherIds && window.app._orphanTeacherIds.length > 0 && window.app.config.teachers.length === 0) {
+                    setTimeout(() => {
+                        if (confirm(
+                            '⚠️ ATENCIÓN: Se han encontrado ' + window.app.requests.length + ' solicitudes de permiso en la base de datos, pero la lista de profesorado está vacía.\n\n' +
+                            'Esto significa que los profesores fueron eliminados accidentalmente de la configuración.\n\n' +
+                            'Los IDs de profesores huérfanos son:\n' + window.app._orphanTeacherIds.join(', ') + '\n\n' +
+                            'Si tienes un archivo de respaldo (.json) exportado anteriormente, puedes importarlo desde la sección "Exportar/Importar JSON" del acordeón de configuración para restaurar los datos.\n\n' +
+                            '¿Deseas ver las instrucciones de recuperación?'
+                        )) {
+                            alert(
+                                '📌 INSTRUCCIONES DE RECUPERACIÓN:\n\n' +
+                                '1. Ve a la pestaña "Configuración"\n' +
+                                '2. Despliega el último acordeón: "Exportar / Importar JSON"\n' +
+                                '3. Si tienes un archivo .json de respaldo, impórtalo con "Importar JSON"\n' +
+                                '4. Esto restaurará el profesorado y toda la configuración\n\n' +
+                                'Si NO tienes respaldo:\n' +
+                                '- Deberás volver a añadir los profesores manualmente\n' +
+                                '- Las 55 solicitudes existentes usarán los IDs internos de los antiguos profesores\n' +
+                                '- Si creas nuevos profesores, tendrán IDs nuevos y las solicitudes antiguas no se vincularán automáticamente\n' +
+                                '- Puedes copiar los IDs de la consola (F12) para referencia'
+                            );
+                        }
+                    }, 1500);
+                }
             } catch (e) {
                 console.error('Error cargando datos:', e);
                 showNotification('Error al cargar datos: ' + e.message, 'error');
