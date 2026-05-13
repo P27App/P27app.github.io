@@ -68,10 +68,10 @@
 
         /* Colores Estados Calendario */
         .cell-weekend { background-color: #FEF2F2 !important; cursor: not-allowed; opacity: 0.8; } 
-        .cell-local { background-color: #F3E8FF !important; cursor: not-allowed; } 
-        .cell-prov { background-color: #FFEDD5 !important; cursor: not-allowed; } 
+        .cell-holiday { background-color: #F3E8FF !important; cursor: not-allowed; } 
+        .cell-free-disposition { background-color: #DCFCE7 !important; cursor: not-allowed; } 
         .cell-unavailable { background-color: #F1F5F9 !important; cursor: not-allowed; }  /* NUEVO: Días no disponibles */
-        .cell-non-teaching { background-color: #FEF9C3 !important; } 
+        .cell-non-teaching { background-color: #FEF9C3 !important; cursor: not-allowed; } 
         .cell-active { box-shadow: inset 0 0 0 2px #3B82F6; }
 
         /* Loader */
@@ -405,9 +405,9 @@
 
             /* Mantener colores de fondo en impresión (forzar) */
             .cell-weekend { background-color: #e0e0e0 !important; opacity: 1 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .cell-local { background-color: #e8d5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .cell-prov { background-color: #fde2c8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .cell-unavailable { background-color: #e8e8e8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .cell-holiday { background-color: #e8d5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; cursor: default !important; }
+            .cell-free-disposition { background-color: #d1fae5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; cursor: default !important; }
+            .cell-unavailable { background-color: #e8e8e8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; cursor: default !important; }
             .cell-non-teaching { background-color: #fdf5c8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .cell-active { box-shadow: inset 0 0 0 1.5pt #3B82F6 !important; }
 
@@ -960,13 +960,13 @@
                     </div>
                 </div>
                 
-                <!-- Acordeón 4: Festivos Locales -->
+                <!-- Acordeón 4: Festivos (locales, provinciales o nacionales) -->
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
                             <div class="d-flex align-items-center gap-2 w-100">
                                 <i data-lucide="flag" style="width:18px"></i>
-                                <span class="fw-bold">4. Festivos Locales</span>
+                                <span class="fw-bold">4. Festivos (locales, provinciales o nacionales)</span>
                             </div>
                         </button>
                     </h2>
@@ -974,26 +974,27 @@
                         <div class="accordion-body">
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
+                                    <p class="small text-muted mb-2">Días inhábiles. No computan en el cálculo de días hábiles para solicitudes.</p>
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearHolidays('local')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('local')" class="btn btn-sm bg-purple-100 text-purple-700 fw-bold py-0 px-2">+ Añadir</button>
+                                            <button onclick="window.app.clearHolidays('holiday')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('holiday')" class="btn btn-sm bg-purple-100 text-purple-700 fw-bold py-0 px-2">+ Añadir</button>
                                         </div>
                                     </div>
-                                    <div id="list-local-holidays" class="d-flex flex-wrap gap-2"></div>
+                                    <div id="list-holidays" class="d-flex flex-wrap gap-2"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Acordeón 5: Festivos Provinciales -->
+                <!-- Acordeón 5: Días de libre disposición -->
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
                             <div class="d-flex align-items-center gap-2 w-100">
-                                <i data-lucide="map-pin" style="width:18px"></i>
-                                <span class="fw-bold">5. Festivos Provinciales</span>
+                                <i data-lucide="calendar-check" style="width:18px"></i>
+                                <span class="fw-bold">5. Días de libre disposición</span>
                             </div>
                         </button>
                     </h2>
@@ -1001,26 +1002,27 @@
                         <div class="accordion-body">
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
+                                    <p class="small text-muted mb-2">Días hábiles que computan en el cálculo de días hábiles para solicitudes.</p>
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearHolidays('provincial')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('provincial')" class="btn btn-sm bg-orange-100 text-orange-700 fw-bold py-0 px-2">+ Añadir</button>
+                                            <button onclick="window.app.clearHolidays('freeDisposition')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('freeDisposition')" class="btn btn-sm fw-bold py-0 px-2" style="background-color:#DCFCE7; color:#16a34a;">+ Añadir</button>
                                         </div>
                                     </div>
-                                    <div id="list-prov-holidays" class="d-flex flex-wrap gap-2"></div>
+                                    <div id="list-free-disposition-days" class="d-flex flex-wrap gap-2"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Acordeón 6: Días No Disponibles -->
+                <!-- Acordeón 6: Días no lectivos comunicados -->
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
                             <div class="d-flex align-items-center gap-2 w-100">
-                                <i data-lucide="x-circle" style="width:18px"></i>
-                                <span class="fw-bold">6. Días No Disponibles</span>
+                                <i data-lucide="book-x" style="width:18px"></i>
+                                <span class="fw-bold">6. Días no lectivos comunicados</span>
                             </div>
                         </button>
                     </h2>
@@ -1028,26 +1030,27 @@
                         <div class="accordion-body">
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
+                                    <p class="small text-muted mb-2">Días hábiles que computan en el cálculo de días hábiles. No se pueden solicitar permisos.</p>
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearHolidays('unavailable')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('unavailable')" class="btn btn-sm bg-gray-100 text-gray-700 fw-bold py-0 px-2">+ Añadir</button>
+                                            <button onclick="window.app.clearHolidays('nonTeaching')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('nonTeaching')" class="btn btn-sm bg-yellow-100 text-yellow-700 fw-bold py-0 px-2">+ Añadir</button>
                                         </div>
                                     </div>
-                                    <div id="list-unavailable-days" class="d-flex flex-wrap gap-2"></div>
+                                    <div id="list-non-teaching-days" class="d-flex flex-wrap gap-2"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Acordeón 7: Días No Lectivos -->
+                <!-- Acordeón 7: Días No Disponibles (trabajo en centro) -->
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
                             <div class="d-flex align-items-center gap-2 w-100">
-                                <i data-lucide="book-x" style="width:18px"></i>
-                                <span class="fw-bold">7. Días No Lectivos</span>
+                                <i data-lucide="building" style="width:18px"></i>
+                                <span class="fw-bold">7. Días No Disponibles (trabajo en centro)</span>
                             </div>
                         </button>
                     </h2>
@@ -1055,13 +1058,14 @@
                         <div class="accordion-body">
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
+                                    <p class="small text-muted mb-2">Días bloqueados en el calendario (no se pueden solicitar permisos). No computan como hábiles.</p>
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearHolidays('nonTeaching')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('nonTeaching')" class="btn btn-sm bg-yellow-100 text-yellow-700 fw-bold py-0 px-2">+ Añadir Tramo</button>
+                                            <button onclick="window.app.clearHolidays('unavailable')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('unavailable')" class="btn btn-sm bg-gray-100 text-gray-700 fw-bold py-0 px-2">+ Añadir</button>
                                         </div>
                                     </div>
-                                    <div id="list-non-teaching-days" class="d-flex flex-wrap gap-2"></div>
+                                    <div id="list-unavailable-days" class="d-flex flex-wrap gap-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -1919,8 +1923,8 @@
             config: {
                 startYear: new Date().getFullYear(),
                 teachers: [],
-                localHolidays: [],
-                provHolidays: [],
+                holidays: [],
+                freeDispositionDays: [],
                 unavailableDays: [],
                 nonTeachingDays: []
             },
@@ -2113,8 +2117,8 @@
                 window.app.config = {
                     startYear: new Date().getFullYear(),
                     teachers: [],
-                    localHolidays: [],
-                    provHolidays: [],
+                    holidays: [],
+                    freeDispositionDays: [],
                     unavailableDays: [],
                     nonTeachingDays: []
                 };
@@ -2152,16 +2156,33 @@
             try {
                 // Cargar configuración con listener en tiempo real
                 const configDoc = await db.collection('schoolConfig').doc('main').get();
+                console.log('[DIAG] Config doc exists:', configDoc.exists);
                 if (configDoc.exists) {
                     const data = configDoc.data();
+                    console.log('[DIAG] Raw Firestore data:', JSON.stringify(data, null, 2));
+
+                    // Migración: campo antiguo nonAvailableDays → unavailableDays
+                    if (!data.unavailableDays && data.nonAvailableDays) {
+                        console.log('[DIAG] Migrando nonAvailableDays → unavailableDays');
+                        data.unavailableDays = data.nonAvailableDays;
+                        try { await db.collection('schoolConfig').doc('main').set({ unavailableDays: data.unavailableDays, nonAvailableDays: firebase.firestore.FieldValue.delete() }, { merge: true }); } catch(e) { console.warn('Migración unavailableDays:', e); }
+                    }
+
                     window.app.config = {
                         startYear: data.startYear || new Date().getFullYear(),
                         teachers: data.teachers || [],
-                        localHolidays: data.localHolidays || [],
-                        provHolidays: data.provHolidays || [],
+                        holidays: data.holidays || [...(data.localHolidays || []), ...(data.provHolidays || [])],
+                        freeDispositionDays: data.freeDispositionDays || [],
                         unavailableDays: data.unavailableDays || [],
                         nonTeachingDays: data.nonTeachingDays || []
                     };
+                    console.log('[DIAG] Config cargada - teachers:', window.app.config.teachers.length, ', holidays:', window.app.config.holidays.length, ', freeDisposition:', window.app.config.freeDispositionDays.length, ', unavailable:', window.app.config.unavailableDays.length, ', nonTeaching:', window.app.config.nonTeachingDays.length);
+
+                    // Migración: unificar festivos antiguos
+                    if (!data.holidays && (data.localHolidays || data.provHolidays)) {
+                        window.app.config.holidays = [...new Set([...(data.localHolidays || []), ...(data.provHolidays || [])])];
+                        try { await db.collection('schoolConfig').doc('main').set({ holidays: window.app.config.holidays, localHolidays: firebase.firestore.FieldValue.delete(), provHolidays: firebase.firestore.FieldValue.delete() }, { merge: true }); } catch(e) { console.warn('Migración festivos:', e); }
+                    }
                     // Migración: asegurar maxRetributedDays
                     window.app.config.teachers.forEach(t => {
                         if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2;
@@ -2171,12 +2192,28 @@
 
                 // Cargar solicitudes
                 const reqSnapshot = await db.collection('requests').get();
+                console.log('[DIAG] Solicitudes cargadas:', reqSnapshot.docs.length);
+                // Diagnosticar si los documentos tienen campos adicionales (ej. teacherName)
+                if (reqSnapshot.docs.length > 0) {
+                    console.log('[DIAG] Campos del primer documento de solicitud:', Object.keys(reqSnapshot.docs[0].data()));
+                    const extraFields = Object.keys(reqSnapshot.docs[0].data()).filter(k => !['date','teacherId','type','createdAt'].includes(k));
+                    if (extraFields.length > 0) console.log('[DIAG] ⚠️ Campos EXTRA encontrados en solicitudes:', extraFields);
+                }
                 window.app.requests = reqSnapshot.docs.map(doc => ({
                     id: doc.id,
                     date: doc.data().date,
                     teacherId: doc.data().teacherId,
                     type: doc.data().type
                 }));
+
+                // Diagnóstico: comprobar si hay solicitudes huérfanas (sin profesor)
+                const orphanIds = [...new Set(window.app.requests.map(r => r.teacherId))];
+                console.log('[DIAG] TeacherIds únicos en solicitudes:', orphanIds.length, orphanIds);
+                if (orphanIds.length > 0 && window.app.config.teachers.length === 0) {
+                    console.warn('[DIAG] ⚠️ Hay solicitudes pero NO hay profesorado. Se mostrará aviso de recuperación.');
+                    // Guardar temporalmente para posible recuperación
+                    window.app._orphanTeacherIds = orphanIds;
+                }
 
                 // Configurar listeners en tiempo real
                 setupFirestoreListeners();
@@ -2198,6 +2235,32 @@
                 }
 
                 showNotification('Datos cargados desde Firebase');
+
+                // Aviso si hay solicitudes pero no profesorado
+                if (window.app._orphanTeacherIds && window.app._orphanTeacherIds.length > 0 && window.app.config.teachers.length === 0) {
+                    setTimeout(() => {
+                        if (confirm(
+                            '⚠️ ATENCIÓN: Se han encontrado ' + window.app.requests.length + ' solicitudes de permiso en la base de datos, pero la lista de profesorado está vacía.\n\n' +
+                            'Esto significa que los profesores fueron eliminados accidentalmente de la configuración.\n\n' +
+                            'Los IDs de profesores huérfanos son:\n' + window.app._orphanTeacherIds.join(', ') + '\n\n' +
+                            'Si tienes un archivo de respaldo (.json) exportado anteriormente, puedes importarlo desde la sección "Exportar/Importar JSON" del acordeón de configuración para restaurar los datos.\n\n' +
+                            '¿Deseas ver las instrucciones de recuperación?'
+                        )) {
+                            alert(
+                                '📌 INSTRUCCIONES DE RECUPERACIÓN:\n\n' +
+                                '1. Ve a la pestaña "Configuración"\n' +
+                                '2. Despliega el último acordeón: "Exportar / Importar JSON"\n' +
+                                '3. Si tienes un archivo .json de respaldo, impórtalo con "Importar JSON"\n' +
+                                '4. Esto restaurará el profesorado y toda la configuración\n\n' +
+                                'Si NO tienes respaldo:\n' +
+                                '- Deberás volver a añadir los profesores manualmente\n' +
+                                '- Las 55 solicitudes existentes usarán los IDs internos de los antiguos profesores\n' +
+                                '- Si creas nuevos profesores, tendrán IDs nuevos y las solicitudes antiguas no se vincularán automáticamente\n' +
+                                '- Puedes copiar los IDs de la consola (F12) para referencia'
+                            );
+                        }
+                    }, 1500);
+                }
             } catch (e) {
                 console.error('Error cargando datos:', e);
                 showNotification('Error al cargar datos: ' + e.message, 'error');
@@ -2220,11 +2283,16 @@
                 .onSnapshot(doc => {
                     if (doc.exists && window.app.currentUser) {
                         const data = doc.data();
+                        // Migración en tiempo real: campo antiguo nonAvailableDays → unavailableDays
+                        if (!data.unavailableDays && data.nonAvailableDays) {
+                            console.log('[DIAG-Listener] Migrando nonAvailableDays → unavailableDays');
+                            db.collection('schoolConfig').doc('main').set({ unavailableDays: data.nonAvailableDays, nonAvailableDays: firebase.firestore.FieldValue.delete() }, { merge: true }).catch(e => console.warn('Migración listener unavailableDays:', e));
+                        }
                         window.app.config = {
                             startYear: data.startYear || new Date().getFullYear(),
                             teachers: data.teachers || [],
-                            localHolidays: data.localHolidays || [],
-                            provHolidays: data.provHolidays || [],
+                            holidays: data.holidays || [...(data.localHolidays || []), ...(data.provHolidays || [])],
+                            freeDispositionDays: data.freeDispositionDays || [],
                             unavailableDays: data.unavailableDays || [],
                             nonTeachingDays: data.nonTeachingDays || []
                         };
@@ -2232,6 +2300,7 @@
                             if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2;
                         });
                         window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
+                        console.log('[DIAG-Listener] Config actualizada - teachers:', window.app.config.teachers.length, ', holidays:', window.app.config.holidays.length, ', freeDisp:', window.app.config.freeDispositionDays.length, ', unavail:', window.app.config.unavailableDays.length, ', nonTeach:', window.app.config.nonTeachingDays.length);
                         renderAll();
                         renderCalendar();
                         window.app.renderSummaryTable();
@@ -2390,8 +2459,8 @@
                 await db.collection('schoolConfig').doc('main').set({
                     startYear: window.app.config.startYear,
                     teachers: window.app.config.teachers,
-                    localHolidays: window.app.config.localHolidays,
-                    provHolidays: window.app.config.provHolidays,
+                    holidays: window.app.config.holidays,
+                    freeDispositionDays: window.app.config.freeDispositionDays || [],
                     unavailableDays: window.app.config.unavailableDays || [],
                     nonTeachingDays: window.app.config.nonTeachingDays || [],
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2410,8 +2479,8 @@
                 await db.collection('schoolConfig').doc('main').set({
                     startYear: window.app.config.startYear,
                     teachers: window.app.config.teachers,
-                    localHolidays: window.app.config.localHolidays,
-                    provHolidays: window.app.config.provHolidays,
+                    holidays: window.app.config.holidays,
+                    freeDispositionDays: window.app.config.freeDispositionDays || [],
                     unavailableDays: window.app.config.unavailableDays || [],
                     nonTeachingDays: window.app.config.nonTeachingDays || [],
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2450,10 +2519,10 @@
             const conflicts = [];
             const allDates = {};
             const categories = [
-                { name: 'localHolidays', list: window.app.config.localHolidays, label: 'Festivos Locales' },
-                { name: 'provHolidays', list: window.app.config.provHolidays, label: 'Festivos Provinciales' },
-                { name: 'unavailableDays', list: window.app.config.unavailableDays || [], label: 'Días No Disponibles' },
-                { name: 'nonTeachingDays', list: window.app.config.nonTeachingDays || [], label: 'Días No Lectivos' }
+                { name: 'holidays', list: window.app.config.holidays, label: 'Festivos' },
+                { name: 'freeDispositionDays', list: window.app.config.freeDispositionDays || [], label: 'Días de libre disposición' },
+                { name: 'unavailableDays', list: window.app.config.unavailableDays || [], label: 'Días No Disponibles (trabajo en centro)' },
+                { name: 'nonTeachingDays', list: window.app.config.nonTeachingDays || [], label: 'Días No Lectivos comunicados' }
             ];
             categories.forEach(category => {
                 category.list.forEach(date => {
@@ -2576,6 +2645,18 @@
             }
         };
 
+        window.app.updateTeacherName = async (id, newName) => {
+            const teacher = window.app.config.teachers.find(t => t.id === id);
+            if (teacher && newName.trim()) {
+                teacher.name = newName.trim();
+                if (teacher._recovered) delete teacher._recovered;
+                await saveConfigToFirestore();
+                renderAll();
+                renderCalendar();
+                showNotification('Nombre de profesor actualizado: ' + teacher.name);
+            }
+        };
+
         window.app.handleExcelUpload = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -2617,10 +2698,10 @@
         // ================================================
         window.app.openDateModal = (type) => {
             window.app.tempHolidayType = type;
-            const titles = { local: 'Festivo Local', provincial: 'Festivo Provincial', unavailable: 'Día No Disponible', nonTeaching: 'Día No Lectivo' };
+            const titles = { holiday: 'Festivo', freeDisposition: 'Día de libre disposición', unavailable: 'Día no disponible (trabajo en centro)', nonTeaching: 'Día no lectivo comunicado' };
             document.getElementById('modal-holiday-title').innerText = 'Añadir: ' + (titles[type] || type);
-            document.getElementById('container-end-date').classList.toggle('hidden', type !== 'nonTeaching');
-            document.getElementById('label-start-date').innerText = type === 'nonTeaching' ? 'Fecha Inicio:' : 'Fecha:';
+            document.getElementById('container-end-date').classList.add('hidden');
+            document.getElementById('label-start-date').innerText = 'Fecha:';
             document.getElementById('input-holiday-date').value = '';
             document.getElementById('input-holiday-end-date').value = '';
             document.getElementById('date-conflict-warning').classList.add('hidden');
@@ -2629,7 +2710,7 @@
         };
 
         window.app.checkDateConflict = (dateStr, type) => {
-            const allTypes = ['localHolidays', 'provHolidays', 'unavailableDays', 'nonTeachingDays'];
+            const allTypes = ['holidays', 'freeDispositionDays', 'unavailableDays', 'nonTeachingDays'];
             for (const t of allTypes) {
                 if (t !== type && (window.app.config[t] || []).includes(dateStr)) return true;
             }
@@ -2637,7 +2718,7 @@
         };
 
         window.app.removeHoliday = async (type, date) => {
-            const target = type === 'local' ? 'localHolidays' : (type === 'provincial' ? 'provHolidays' : (type === 'unavailable' ? 'unavailableDays' : 'nonTeachingDays'));
+            const target = type === 'holiday' ? 'holidays' : (type === 'freeDisposition' ? 'freeDispositionDays' : (type === 'unavailable' ? 'unavailableDays' : 'nonTeachingDays'));
             window.app.config[target] = window.app.config[target].filter(d => d !== date);
             renderAll();
             renderCalendar();
@@ -2645,7 +2726,7 @@
         };
 
         window.app.clearHolidays = async (type) => {
-            const map = { local: 'localHolidays', provincial: 'provHolidays', unavailable: 'unavailableDays', nonTeaching: 'nonTeachingDays' };
+            const map = { holiday: 'holidays', freeDisposition: 'freeDispositionDays', unavailable: 'unavailableDays', nonTeaching: 'nonTeachingDays' };
             if (confirm(`¿Borrar TODOS los días de esta categoría?`)) {
                 window.app.config[map[type]] = [];
                 renderAll();
@@ -2659,11 +2740,11 @@
             const ds = document.getElementById('input-holiday-date').value;
             if (!ds) return;
             const type = window.app.tempHolidayType;
-            const target = type === 'local' ? 'localHolidays' : (type === 'provincial' ? 'provHolidays' : (type === 'unavailable' ? 'unavailableDays' : 'nonTeachingDays'));
+            const target = type === 'holiday' ? 'holidays' : (type === 'freeDisposition' ? 'freeDispositionDays' : (type === 'unavailable' ? 'unavailableDays' : 'nonTeachingDays'));
             if (!window.app.config[target]) window.app.config[target] = [];
 
             const removeDateFromOtherCategories = (dateStr, currentType) => {
-                const allTypes = ['localHolidays', 'provHolidays', 'unavailableDays', 'nonTeachingDays'];
+                const allTypes = ['holidays', 'freeDispositionDays', 'unavailableDays', 'nonTeachingDays'];
                 allTypes.forEach(t => {
                     if (t !== currentType && window.app.config[t]) {
                         window.app.config[t] = window.app.config[t].filter(d => d !== dateStr);
@@ -2671,22 +2752,8 @@
                 });
             };
 
-            if (type === 'nonTeaching') {
-                const de = document.getElementById('input-holiday-end-date').value;
-                if (!de) return alert("Indica fecha de fin.");
-                let curr = new Date(ds + 'T12:00:00'), end = new Date(de + 'T12:00:00');
-                if (curr > end) { alert("La fecha de inicio debe ser anterior a la fecha de fin."); return; }
-
-                while (curr <= end) {
-                    const dStr = curr.toISOString().split('T')[0];
-                    removeDateFromOtherCategories(dStr, target);
-                    if (!window.app.config[target].includes(dStr)) window.app.config[target].push(dStr);
-                    curr.setDate(curr.getDate() + 1);
-                }
-            } else {
-                removeDateFromOtherCategories(ds, target);
-                if (!window.app.config[target].includes(ds)) window.app.config[target].push(ds);
-            }
+            removeDateFromOtherCategories(ds, target);
+            if (!window.app.config[target].includes(ds)) window.app.config[target].push(ds);
             window.app.config[target].sort();
             window.app.closeModal('modal-holiday');
             renderAll();
@@ -2722,7 +2789,7 @@
                 if (select && select.value) {
                     const selectedCategory = select.value;
                     const date = conflict.date;
-                    ['localHolidays', 'provHolidays', 'unavailableDays', 'nonTeachingDays'].forEach(category => {
+                    ['holidays', 'freeDispositionDays', 'unavailableDays', 'nonTeachingDays'].forEach(category => {
                         if (window.app.config[category]) {
                             window.app.config[category] = window.app.config[category].filter(d => d !== date);
                         }
@@ -2756,12 +2823,7 @@
         // ================================================
         window.app.countBusinessDaysBetween = (fromDateStr, toDateStr) => {
             const cfg = window.app.config;
-            const allHolidays = new Set([
-                ...(cfg.localHolidays || []),
-                ...(cfg.provHolidays || []),
-                ...(cfg.nonTeachingDays || []),
-                ...(cfg.unavailableDays || [])
-            ]);
+            const holidays = new Set(cfg.holidays || []);
 
             function parseDate(s) {
                 const p = s.split('-');
@@ -2785,7 +2847,7 @@
                 const mm = String(current.getMonth() + 1).padStart(2, '0');
                 const dd = String(current.getDate()).padStart(2, '0');
                 const dateKey = `${yyyy}-${mm}-${dd}`;
-                const isHoliday = allHolidays.has(dateKey);
+                const isHoliday = holidays.has(dateKey);
 
                 if (!isWeekend && !isHoliday) {
                     count++;
@@ -3168,8 +3230,8 @@
                 window.app.config = {
                     startYear: new Date().getFullYear(),
                     teachers: [],
-                    localHolidays: [],
-                    provHolidays: [],
+                    holidays: [],
+                    freeDispositionDays: [],
                     unavailableDays: [],
                     nonTeachingDays: []
                 };
@@ -3222,11 +3284,63 @@
                 // Sanitizar posibles \n dobles escapados (compatibilidad con exportaciones de la app original)
                 text = text.replace(/\\\\n/g, '\\n');
                 const data = JSON.parse(text);
+                console.log('[IMPORT] Datos del archivo:', JSON.stringify(data.config, null, 2), 'Requests:', data.requests.length);
+
                 if (data.config && data.requests) {
-                    // Importar config
+                    // Importar config con migración de campos antiguos
                     window.app.config = data.config;
+
+                    // Migración: localHolidays + provHolidays → holidays
+                    if (!window.app.config.holidays && (window.app.config.localHolidays || window.app.config.provHolidays)) {
+                        window.app.config.holidays = [...new Set([
+                            ...(window.app.config.localHolidays || []),
+                            ...(window.app.config.provHolidays || [])
+                        ])];
+                        delete window.app.config.localHolidays;
+                        delete window.app.config.provHolidays;
+                        console.log('[IMPORT] Migrados festivos antiguos → holidays:', window.app.config.holidays.length);
+                    }
+
+                    // Migración: nonAvailableDays → unavailableDays
+                    if (!window.app.config.unavailableDays && window.app.config.nonAvailableDays) {
+                        window.app.config.unavailableDays = window.app.config.nonAvailableDays;
+                        delete window.app.config.nonAvailableDays;
+                        console.log('[IMPORT] Migrado nonAvailableDays → unavailableDays');
+                    }
+
+                    // Asegurar campos nuevos con valores por defecto
+                    if (!window.app.config.holidays) window.app.config.holidays = [];
+                    if (!window.app.config.freeDispositionDays) window.app.config.freeDispositionDays = [];
+                    if (!window.app.config.unavailableDays) window.app.config.unavailableDays = [];
+                    if (!window.app.config.nonTeachingDays) window.app.config.nonTeachingDays = [];
+                    if (!window.app.config.teachers) window.app.config.teachers = [];
+
                     window.app.config.teachers.forEach(t => { if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2; });
                     window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
+
+                    // Recuperación automática: si no hay profesores pero sí solicitudes, recrearlos a partir de los IDs huérfanos
+                    if (window.app.config.teachers.length === 0 && data.requests.length > 0) {
+                        const orphanIds = [...new Set(data.requests.map(r => r.teacherId).filter(Boolean))];
+                        console.log('[IMPORT-RECUPERACIÓN] Se encontraron', orphanIds.length, 'teacherIds huérfanos en las solicitudes');
+                        if (orphanIds.length > 0 && confirm(
+                            '⚠️ El archivo de respaldo NO contiene profesorado, pero tiene ' + data.requests.length + ' solicitudes con ' + orphanIds.length + ' profesores diferentes.\n\n' +
+                            '¿Deseas recuperar los profesores a partir de las solicitudes?\n\n' +
+                            'Se crearán entradas con los IDs originales (que mantendrán la vinculación con las solicitudes), pero SIN NOMBRE.\n' +
+                            'Después podrás editar cada profesor para asignarle el nombre correcto.\n\n' +
+                            'Si prefieres NO recuperar, los profesores se quedarán vacíos y las solicitudes no se mostrarán en las tablas.'
+                        )) {
+                            orphanIds.forEach(id => {
+                                window.app.config.teachers.push({
+                                    id: id,
+                                    name: 'Profesor_' + id.substring(0, 6),
+                                    maxRetributedDays: 2,
+                                    _recovered: true
+                                });
+                            });
+                            console.log('[IMPORT-RECUPERACIÓN] Creados', orphanIds.length, 'profesores recuperados');
+                        }
+                    }
+
                     await saveConfigToFirestore();
 
                     // Importar requests - borrar las existentes primero
@@ -3242,15 +3356,18 @@
                     });
                     await batch.commit();
 
-                    showNotification('Datos importados correctamente');
+                    showNotification('Datos importados correctamente (' + window.app.config.teachers.length + ' profesores, ' + data.requests.length + ' solicitudes)');
 
                     // Verificar conflictos
                     const conflicts = findDateConflicts();
                     if (conflicts.length > 0) {
                         setTimeout(() => showDateConflictsModal(conflicts), 500);
                     }
+                } else {
+                    showNotification('El archivo no tiene el formato esperado (debe contener config y requests).', 'error');
                 }
             } catch (err) {
+                console.error('[IMPORT] Error:', err);
                 showNotification('Error JSON: ' + err.message, 'error');
             }
             e.target.value = '';
@@ -3267,11 +3384,15 @@
             document.getElementById('teacher-count').innerText = `Listado (${window.app.config.teachers.length})`;
             window.app.config.teachers.forEach(t => {
                 const maxDays = (t.maxRetributedDays !== undefined) ? t.maxRetributedDays : 2;
+                const isRecovered = t._recovered;
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center bg-light small';
                 li.innerHTML = `
                     <div class="d-flex align-items-center gap-2 flex-grow-1">
-                        <span class="text-truncate">${t.name}</span>
+                        ${isRecovered
+                            ? '<input type="text" value="' + t.name + '" onchange="window.app.updateTeacherName(\'' + t.id + '\', this.value)" onclick="event.stopPropagation()" style="width:160px; padding:2px 6px; font-size:0.8rem; border-radius:4px; border:2px solid #f59e0b; background:#fffbeb;" class="form-control form-control-sm" title="Profesor recuperado - edita el nombre">'
+                            : '<span class="text-truncate">' + t.name + '</span>'
+                        }
                         <div class="d-flex align-items-center gap-1" title="Días retribuidos asignados">
                             <i data-lucide="calendar-check" style="width:13px; color:#2563EB; flex-shrink:0;"></i>
                             <input type="number" min="0" max="10" value="${maxDays}"
@@ -3284,8 +3405,8 @@
                     <button onclick="window.app.removeTeacher('${t.id}')" class="btn btn-link p-0 text-danger" style="flex-shrink:0;"><i data-lucide="trash-2" style="width:16px"></i></button>`;
                 listT.appendChild(li);
             });
-            renderHolidayList('local', 'list-local-holidays');
-            renderHolidayList('provincial', 'list-prov-holidays');
+            renderHolidayList('holiday', 'list-holidays');
+            renderHolidayList('freeDisposition', 'list-free-disposition-days');
             renderHolidayList('unavailable', 'list-unavailable-days');
             renderHolidayList('nonTeaching', 'list-non-teaching-days');
             lucide.createIcons();
@@ -3295,8 +3416,8 @@
             const container = document.getElementById(containerId);
             let list = [];
             let colorClass = '';
-            if (type === 'local') { list = window.app.config.localHolidays; colorClass = 'bg-purple-100 text-purple-700'; }
-            else if (type === 'provincial') { list = window.app.config.provHolidays; colorClass = 'bg-orange-100 text-orange-700'; }
+            if (type === 'holiday') { list = window.app.config.holidays; colorClass = 'bg-purple-100 text-purple-700'; }
+            else if (type === 'freeDisposition') { list = window.app.config.freeDispositionDays || []; colorClass = 'bg-success bg-opacity-10 text-success'; }
             else if (type === 'unavailable') { list = window.app.config.unavailableDays || []; colorClass = 'bg-gray-100 text-gray-700'; }
             else if (type === 'nonTeaching') { list = window.app.config.nonTeachingDays || []; colorClass = 'bg-yellow-100 text-yellow-700'; }
             container.innerHTML = '';
@@ -3344,8 +3465,8 @@
             const firstDay = new Date(year, monthIdx, 1).getDay();
             const startDay = (firstDay + 6) % 7; // Monday=0
 
-            const localH = new Set(window.app.config.localHolidays || []);
-            const provH = new Set(window.app.config.provHolidays || []);
+            const holidaysD = new Set(window.app.config.holidays || []);
+            const freeDispD = new Set(window.app.config.freeDispositionDays || []);
             const unavailD = new Set(window.app.config.unavailableDays || []);
             const nonTeachD = new Set(window.app.config.nonTeachingDays || []);
 
@@ -3362,24 +3483,24 @@
                 const dateStr = `${year}-${String(monthIdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dow = new Date(year, monthIdx, day).getDay();
                 const isWeekend = dow === 0 || dow === 6;
-                const isLocal = localH.has(dateStr);
-                const isProv = provH.has(dateStr);
+                const isHoliday = holidaysD.has(dateStr);
+                const isFreeDisp = freeDispD.has(dateStr);
                 const isUnavail = unavailD.has(dateStr);
                 const isNonTeach = nonTeachD.has(dateStr);
 
                 let cellClass = 'calendar-cell';
                 if (isWeekend) cellClass += ' cell-weekend';
-                else if (isLocal) cellClass += ' cell-local';
-                else if (isProv) cellClass += ' cell-prov';
+                else if (isHoliday) cellClass += ' cell-holiday';
                 else if (isUnavail) cellClass += ' cell-unavailable';
                 else if (isNonTeach) cellClass += ' cell-non-teaching';
+                else if (isFreeDisp) cellClass += ' cell-free-disposition';
 
                 const reqs = window.app.requests.filter(r => r.date === dateStr);
                 if (reqs.length > 0) cellClass += ' cell-active';
 
-                const tooltip = buildTooltip(dateStr, isWeekend, isLocal, isProv, isUnavail, isNonTeach, reqs);
+                const tooltip = buildTooltip(dateStr, isWeekend, isHoliday, isFreeDisp, isUnavail, isNonTeach, reqs);
 
-                html += `<div class="${cellClass}" onclick="${isWeekend || isUnavail ? '' : `window.app.openRequestModal('${dateStr}')`}" ${tooltip}>`;
+                html += `<div class="${cellClass}" onclick="${isWeekend || isHoliday || isUnavail || isFreeDisp || isNonTeach ? '' : `window.app.openRequestModal('${dateStr}')`}" ${tooltip}>`;
                 html += `<span>${day}</span>`;
 
                 if (reqs.length > 0) {
@@ -3402,13 +3523,13 @@
             return html;
         }
 
-        function buildTooltip(dateStr, isWeekend, isLocal, isProv, isUnavail, isNonTeach, reqs) {
+        function buildTooltip(dateStr, isWeekend, isHoliday, isFreeDisp, isUnavail, isNonTeach, reqs) {
             const parts = [dateStr];
             if (isWeekend) parts.push('Fin de semana');
-            if (isLocal) parts.push('Festivo Local');
-            if (isProv) parts.push('Festivo Provincial');
-            if (isUnavail) parts.push('No Disponible');
-            if (isNonTeach) parts.push('No Lectivo');
+            if (isHoliday) parts.push('Festivo');
+            if (isFreeDisp) parts.push('Libre disposición');
+            if (isUnavail) parts.push('No disponible (trabajo en centro)');
+            if (isNonTeach) parts.push('No lectivo comunicado');
 
             reqs.forEach(r => {
                 const name = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
