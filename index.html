@@ -2649,7 +2649,6 @@
             const teacher = window.app.config.teachers.find(t => t.id === id);
             if (teacher && newName.trim()) {
                 teacher.name = newName.trim();
-                if (teacher._recovered) delete teacher._recovered;
                 await saveConfigToFirestore();
                 renderAll();
                 renderCalendar();
