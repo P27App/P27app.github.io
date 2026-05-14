@@ -3074,9 +3074,13 @@
 
             const teacher = window.app.config.teachers.find(t => t.id === tid);
             const maxRetDays = (teacher && teacher.maxRetributedDays !== undefined) ? teacher.maxRetributedDays : 2;
+            const MAX_TOTAL_RETRIBUTED = 6;
             const treqs = window.app.requests.filter(r => r.teacherId === tid);
-            if (type === 'paid_teaching' && treqs.filter(r => r.type === 'paid_teaching').length >= maxRetDays) return alert(`Máximo ${maxRetDays} Retribuidos Lectivos.`);
-            if (type === 'paid_non_teaching' && treqs.filter(r => r.type === 'paid_non_teaching').length >= 4) return alert('Máximo 4 Retribuidos No Lectivos.');
+            const ptCount = treqs.filter(r => r.type === 'paid_teaching').length;
+            const pntCount = treqs.filter(r => r.type === 'paid_non_teaching').length;
+            const totalRet = ptCount + pntCount;
+            if (type === 'paid_teaching' && ptCount >= maxRetDays) return alert(`Máximo ${maxRetDays} Retribuidos Lectivos.`);
+            if (type === 'paid_non_teaching' && pntCount >= MAX_TOTAL_RETRIBUTED - ptCount) return alert(`Máximo ${MAX_TOTAL_RETRIBUTED - ptCount} Retribuidos No Lectivos (el total retribuido no puede superar ${MAX_TOTAL_RETRIBUTED}, y ya tienes ${ptCount} lectivo${ptCount !== 1 ? 's' : ''}).`);
 
             // ── Estado: guardando ──
             _setSubmitBtnState(btnSubmit, 'saving');
@@ -3141,8 +3145,10 @@
                 if (window.app.requests.find(r => r.date === ds && r.teacherId === t.id)) return;
                 const treqs = window.app.requests.filter(r => r.teacherId === t.id);
                 const maxRetDays = (t.maxRetributedDays !== undefined) ? t.maxRetributedDays : 2;
-                if (type === 'paid_teaching' && treqs.filter(r => r.type === 'paid_teaching').length >= maxRetDays) return;
-                if (type === 'paid_non_teaching' && treqs.filter(r => r.type === 'paid_non_teaching').length >= 4) return;
+                const ptC = treqs.filter(r => r.type === 'paid_teaching').length;
+                const pntC = treqs.filter(r => r.type === 'paid_non_teaching').length;
+                if (type === 'paid_teaching' && ptC >= maxRetDays) return;
+                if (type === 'paid_non_teaching' && pntC >= 6 - ptC) return;
                 batch.set(reqsRef.doc(), {
                     date: ds,
                     teacherId: t.id,
@@ -3774,20 +3780,22 @@
                 const pnt = rs.filter(r => r.type === 'paid_non_teaching').length;
                 const u = rs.filter(r => r.type === 'unpaid').length;
                 const maxRetDays = (t.maxRetributedDays !== undefined) ? t.maxRetributedDays : 2;
+                const maxNonTeaching = 6 - pt;
                 const hasRequests = (pt > 0 || pnt > 0 || u > 0);
                 if (filter === 'with' && !hasRequests) return;
                 if (filter === 'without' && hasRequests) return;
 
+                const totalRet = pt + pnt;
                 let statusHtml = '<span class="badge bg-success">Disponible</span>';
-                if (pt >= maxRetDays && pnt >= 4) statusHtml = '<span class="badge bg-danger">AGOTADO (Retr.)</span>';
+                if (totalRet >= 6) statusHtml = '<span class="badge bg-danger">AGOTADO (Retr.)</span>';
                 else if (pt >= maxRetDays) statusHtml = '<span class="badge bg-warning text-dark">Solo No Lect. / No Retr.</span>';
-                else if (pnt >= 4) statusHtml = '<span class="badge bg-warning text-dark">Solo Lect. / No Retr.</span>';
+                else if (pnt >= maxNonTeaching) statusHtml = '<span class="badge bg-warning text-dark">Solo Lect. / No Retr.</span>';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="fw-medium">${t.name}</td>
                     <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${t.name}', 'paid_teaching')"><span class="badge rounded-pill ${pt >= maxRetDays ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'}">${pt} / ${maxRetDays}</span></button></td>
-                    <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${t.name}', 'paid_non_teaching')"><span class="badge rounded-pill ${pnt >= 4 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning-emphasis'}">${pnt} / 4</span></button></td>
+                    <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${t.name}', 'paid_non_teaching')"><span class="badge rounded-pill ${pnt >= maxNonTeaching ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning-emphasis'}">${pnt} / ${maxNonTeaching}</span></button></td>
                     <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${t.name}', 'unpaid')"><span class="badge rounded-pill bg-light text-dark border">${u}</span></button></td>
                     <td class="text-center">${statusHtml}</td>`;
                 tb.appendChild(tr);
@@ -3849,7 +3857,9 @@
                     const rows = teachersSorted.map(t => {
                         const rs = window.app.requests.filter(r => r.teacherId === t.id);
                         const maxRetDays = (t.maxRetributedDays !== undefined) ? t.maxRetributedDays : 2;
-                        return [t.name, rs.filter(r => r.type === 'paid_teaching').length + '/' + maxRetDays, rs.filter(r => r.type === 'paid_non_teaching').length + '/4', rs.filter(r => r.type === 'unpaid').length];
+                        const pt = rs.filter(r => r.type === 'paid_teaching').length;
+                        const pnt = rs.filter(r => r.type === 'paid_non_teaching').length;
+                        return [t.name, pt + '/' + maxRetDays, pnt + '/' + (6 - pt), rs.filter(r => r.type === 'unpaid').length];
                     });
                     doc.autoTable({
                         startY: 30, head: [['Profesor', 'Retr.Lect.', 'Retr.NO Lect.', 'No Retr.']],
