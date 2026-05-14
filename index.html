@@ -2937,8 +2937,9 @@
             const dateObj = new Date(ds + 'T12:00:00');
             document.getElementById('modal-request-title').innerText = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 
-            // ── Controlar visibilidad del formulario de añadir según límite diario (2 en lectivo) ──
-            const dayFull = !isN && reqs.length >= 2;
+            // ── Controlar visibilidad del formulario de añadir según límite diario (2 en día lectivo: retribuidos + no retribuidos) ──
+            const lectivoCount = reqs.filter(r => r.type === 'paid_teaching' || r.type === 'unpaid').length;
+            const dayFull = !isN && lectivoCount >= 2;
             const addSection = document.getElementById('modal-add-section');
             const hrEl = document.getElementById('modal-request-hr');
             const fullNotice = document.getElementById('modal-day-full-notice');
@@ -3069,7 +3070,7 @@
             if (type === 'paid_teaching' && isN) return alert('Error: Tipo lectivo en día no lectivo.');
             if (type === 'paid_non_teaching' && !isN) return alert('Error: Tipo no lectivo en día lectivo.');
             if (window.app.requests.find(r => r.date === ds && r.teacherId === tid)) return alert('Ya tiene solicitud hoy.');
-            if (!isN) { if (window.app.requests.filter(r => r.date === ds).length >= 2) return alert('Límite diario (2) alcanzado.'); }
+            if (!isN) { if (window.app.requests.filter(r => r.date === ds && (r.type === 'paid_teaching' || r.type === 'unpaid')).length >= 2) return alert('Límite diario de 2 permisos (retribuidos + no retribuidos) en día lectivo alcanzado.'); }
 
             const teacher = window.app.config.teachers.find(t => t.id === tid);
             const maxRetDays = (teacher && teacher.maxRetributedDays !== undefined) ? teacher.maxRetributedDays : 2;
