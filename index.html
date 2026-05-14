@@ -2264,11 +2264,12 @@
                         window.app.renderSummaryTable();
                         window.app.renderReportTable();
 
-                        // Si el modal de solicitudes está abierto, refrescarlo
-                        // para mostrar los datos actualizados sin duplicados.
+                        // Si el modal de solicitudes está abierto, refrescar
+                        // SOLO la lista de solicitudes (no reabrir el modal completo
+                        // para evitar mostrar el aviso de "día completo" falso).
                         const modalEl = document.getElementById('modal-request');
                         if (modalEl && !modalEl.classList.contains('hidden') && window.app.selectedDate) {
-                            window.app.openRequestModal(window.app.selectedDate);
+                            window.app.refreshRequestList(window.app.selectedDate);
                         }
                     }
                 }, err => {
@@ -2810,19 +2811,106 @@
         // sobre el aviso visual y los botones del modal.
         // ================================================
         window.app.validateMinBusinessDays = () => {
-            // Validación de plazo eliminada: se permiten permisos de fechas pasadas
-            // ya que puede ser necesario actualizar la base de datos con registros anteriores.
-            const noticeWarning = document.getElementById('notice-warning');
-            const btnSubmitRequest = document.getElementById('btn-submit-request');
+            const requestDateVal = document.getElementById('input-request-date').value;
+            const ds = window.app.selectedDate;
+            const MIN_BUSINESS_DAYS = 15;
+
+            const noticeWarning       = document.getElementById('notice-warning');
+            const btnSubmitRequest    = document.getElementById('btn-submit-request');
             const bulkActionContainer = document.getElementById('bulk-action-container');
-            if (noticeWarning) noticeWarning.classList.add('hidden');
-            if (btnSubmitRequest) {
+
+            // Si no se ha introducido fecha de solicitud → bloquear
+            if (!requestDateVal) {
+                noticeWarning.classList.remove('hidden');
+                noticeWarning.querySelector('.alert').className = 'alert alert-warning d-flex align-items-start gap-2 mb-0 py-2 px-3';
+                noticeWarning.querySelector('strong').innerText = 'Fecha de solicitud requerida';
+                noticeWarning.querySelector('p').innerHTML = 'Debes introducir la fecha en la que se realiza la solicitud para comprobar el plazo.';
+                btnSubmitRequest.disabled = true;
+                btnSubmitRequest.classList.add('opacity-50', 'pe-none');
+                bulkActionContainer.classList.add('hidden');
+                return;
+            }
+
+            // Si la fecha del permiso es pasada o hoy → permitir sin validación
+            // (puede ser una actualización de la base de datos con un registro anterior)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const permDate = new Date(ds + 'T12:00:00');
+            permDate.setHours(0, 0, 0, 0);
+            const isPastOrToday = permDate <= today;
+
+            if (isPastOrToday) {
+                noticeWarning.classList.add('hidden');
                 btnSubmitRequest.disabled = false;
                 btnSubmitRequest.classList.remove('opacity-50', 'pe-none');
+                const isN = (window.app.config.nonTeachingDays || []).includes(ds);
+                if (isN) { bulkActionContainer.classList.remove('hidden'); }
+                return;
             }
-            const isN = (window.app.config.nonTeachingDays || []).includes(window.app.selectedDate);
-            if (isN && bulkActionContainer) {
-                bulkActionContainer.classList.remove('hidden');
+
+            // Fecha futura: validar plazo mínimo de 15 días hábiles
+            const businessDaysLeft = window.app.countBusinessDaysBetween(requestDateVal, ds);
+
+            if (businessDaysLeft < MIN_BUSINESS_DAYS) {
+                noticeWarning.classList.remove('hidden');
+                noticeWarning.querySelector('.alert').className = 'alert alert-danger d-flex align-items-start gap-2 mb-0 py-2 px-3';
+                noticeWarning.querySelector('strong').innerText = 'Plazo insuficiente';
+                // IMPORTANTE: incluir id="notice-days-remaining" en el innerHTML
+                // para que el elemento no se pierda en llamadas sucesivas.
+                noticeWarning.querySelector('p').innerHTML = 'La solicitud debe realizarse con al menos <strong>15 días hábiles</strong> de antelación. Actualmente faltan <strong id="notice-days-remaining">' + businessDaysLeft + '</strong> días hábiles.';
+                btnSubmitRequest.disabled = true;
+                btnSubmitRequest.classList.add('opacity-50', 'pe-none');
+                bulkActionContainer.classList.add('hidden');
+            } else {
+                noticeWarning.classList.add('hidden');
+                btnSubmitRequest.disabled = false;
+                btnSubmitRequest.classList.remove('opacity-50', 'pe-none');
+                const isN = (window.app.config.nonTeachingDays || []).includes(ds);
+                if (isN) { bulkActionContainer.classList.remove('hidden'); }
+            }
+        };
+
+        // ── Refrescar SOLO la lista de solicitudes del modal (sin reconfigurar el formulario) ──
+        // Se usa desde el onSnapshot listener para evitar el aviso falso de "día completo"
+        // tras guardar una solicitud que completa el cupo del día.
+        window.app.refreshRequestList = (ds) => {
+            const c = document.getElementById('request-list-container');
+            if (!c) return;
+            c.innerHTML = '';
+            const reqs = window.app.requests.filter(r => r.date === ds);
+            if (reqs.length === 0) {
+                c.innerHTML = '<p class="text-secondary small fst-italic">Ninguna.</p>';
+            } else {
+                reqs.forEach(r => {
+                    const name = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
+                    const lbl = { 'paid_teaching': 'Retr. Lect.', 'paid_non_teaching': 'Retr. NO Lect.', 'unpaid': 'No Retr.' }[r.type];
+                    let cls = '';
+                    if (r.type === 'paid_teaching') cls = 'bg-primary-subtle text-primary border border-primary-subtle';
+                    if (r.type === 'paid_non_teaching') cls = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+                    if (r.type === 'unpaid') cls = 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle';
+                    const d = document.createElement('div');
+                    d.className = "d-flex justify-content-between align-items-center bg-light p-2 rounded border";
+                    d.innerHTML = `<div><span class="fw-bold small d-block">${name}</span><span class="badge rounded-pill ${cls}">${lbl}</span></div><button onclick="window.app.deleteRequest('${r.id}')" class="btn btn-sm text-danger p-0"><i data-lucide="trash-2" style="width:16px"></i></button>`;
+                    c.appendChild(d);
+                });
+                try { lucide.createIcons(); } catch(e) {}
+            }
+
+            // Actualizar el estado del formulario según el nuevo count
+            const isN = (window.app.config.nonTeachingDays || []).includes(ds);
+            const dayFull = !isN && reqs.length >= 2;
+            const addSection = document.getElementById('modal-add-section');
+            const hrEl = document.getElementById('modal-request-hr');
+            const fullNotice = document.getElementById('modal-day-full-notice');
+
+            if (dayFull && addSection && hrEl && fullNotice) {
+                addSection.classList.add('hidden');
+                hrEl.classList.add('hidden');
+                fullNotice.classList.remove('hidden');
+            } else if (addSection && hrEl && fullNotice) {
+                addSection.classList.remove('hidden');
+                hrEl.classList.remove('hidden');
+                fullNotice.classList.add('hidden');
             }
         };
 
@@ -3013,6 +3101,20 @@
             if (!type) { alert('Debes seleccionar un tipo de permiso'); return; }
 
             const ds = window.app.selectedDate;
+            const requestDateVal = document.getElementById('input-request-date').value;
+
+            // ── Validación de plazo mínimo: 15 días hábiles (solo fechas futuras) ──
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const permDate = new Date(ds + 'T12:00:00');
+            permDate.setHours(0, 0, 0, 0);
+            if (permDate > today) {
+                if (!requestDateVal) return alert('Debes introducir la fecha de solicitud.');
+                const businessDaysLeft = window.app.countBusinessDaysBetween(requestDateVal, ds);
+                if (businessDaysLeft < 15) {
+                    return alert(`Plazo insuficiente: se requieren al menos 15 días hábiles de antelación. Desde la fecha de solicitud indicada (${requestDateVal}) faltan ${businessDaysLeft} días hábiles.`);
+                }
+            }
 
             const isN = (window.app.config.nonTeachingDays || []).includes(ds);
             if (type === 'paid_teaching' && isN) return alert('Error: Tipo lectivo en día no lectivo.');
@@ -3045,8 +3147,10 @@
                 // Resetear selector de profesor para permitir añadir otro rápidamente
                 document.getElementById('req-teacher-select').value = '';
 
-                // Actualizar la vista del modal y el calendario
-                window.app.openRequestModal(ds);
+                // Actualizar la vista: refrescar lista del modal y calendario.
+                // Se usa refreshRequestList en lugar de openRequestModal para
+                // evitar la condición de carrera con el onSnapshot listener
+                // que causaba el aviso falso de "día completo".
                 renderCalendar();
                 window.app.renderSummaryTable();
                 window.app.renderReportTable();
@@ -3064,6 +3168,20 @@
             const ds = window.app.selectedDate;
             const type = document.querySelector('input[name="reqType"]:checked')?.value;
             if (!type) { alert('Debes seleccionar un tipo de permiso'); return; }
+
+            // ── Validación de plazo mínimo: 15 días hábiles (solo fechas futuras) ──
+            const todayBulk = new Date();
+            todayBulk.setHours(0, 0, 0, 0);
+            const permDateBulk = new Date(ds + 'T12:00:00');
+            permDateBulk.setHours(0, 0, 0, 0);
+            if (permDateBulk > todayBulk) {
+                const requestDateValBulk = document.getElementById('input-request-date').value;
+                if (!requestDateValBulk) return alert('Debes introducir la fecha de solicitud.');
+                const businessDaysLeftBulk = window.app.countBusinessDaysBetween(requestDateValBulk, ds);
+                if (businessDaysLeftBulk < 15) {
+                    return alert(`Plazo insuficiente: se requieren al menos 15 días hábiles de antelación. Desde la fecha de solicitud indicada (${requestDateValBulk}) faltan ${businessDaysLeftBulk} días hábiles.`);
+                }
+            }
 
             const btnSubmit = document.getElementById('btn-submit-request');
             _setSubmitBtnState(btnSubmit, 'saving');
@@ -3097,8 +3215,7 @@
                 await batch.commit();
                 _setSubmitBtnState(btnSubmit, 'saved');
                 showNotification(`${add} permisos guardados`);
-                // El listener actualizará los datos
-                window.app.openRequestModal(ds);
+                // El listener onSnapshot refrescará la lista del modal automáticamente.
                 renderCalendar();
                 window.app.renderSummaryTable();
                 window.app.renderReportTable();
