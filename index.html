@@ -2819,30 +2819,37 @@
             const btnSubmitRequest   = document.getElementById('btn-submit-request');
             const bulkActionContainer = document.getElementById('bulk-action-container');
 
-            // Si no se ha introducido fecha de solicitud → bloquear
+            // Si no se ha introducido fecha de solicitud → aviso visual, pero NO bloquear
             if (!requestDateVal) {
                 noticeWarning.classList.remove('hidden');
-                noticeDaysRemaining.innerText = '?';
                 noticeWarning.querySelector('.alert').className = 'alert alert-warning d-flex align-items-start gap-2 mb-0 py-2 px-3';
-                noticeWarning.querySelector('strong').innerText = 'Fecha de solicitud requerida';
-                noticeWarning.querySelector('p').innerText = 'Debes introducir la fecha en la que se realiza la solicitud para comprobar el plazo.';
-                btnSubmitRequest.disabled = true;
-                btnSubmitRequest.classList.add('opacity-50', 'pe-none');
-                bulkActionContainer.classList.add('hidden');
+                noticeWarning.querySelector('strong').innerText = 'Aviso';
+                noticeWarning.querySelector('p').innerHTML = 'No se ha indicado la fecha de solicitud, por lo que no se puede comprobar el plazo de <strong>15 días hábiles</strong>.';
+                btnSubmitRequest.disabled = false;
+                btnSubmitRequest.classList.remove('opacity-50', 'pe-none');
+                // Restaurar visibilidad del bulk si corresponde (no lectivo)
+                const isNWarn = (window.app.config.nonTeachingDays || []).includes(ds);
+                if (isNWarn) {
+                    bulkActionContainer.classList.remove('hidden');
+                }
                 return;
             }
 
             const businessDaysLeft = window.app.countBusinessDaysBetween(requestDateVal, ds);
 
             if (businessDaysLeft < MIN_BUSINESS_DAYS) {
+                // Aviso visual únicamente — NO se bloquea el botón ni el envío.
                 noticeWarning.classList.remove('hidden');
-                noticeDaysRemaining.innerText = businessDaysLeft;
-                noticeWarning.querySelector('.alert').className = 'alert alert-danger d-flex align-items-start gap-2 mb-0 py-2 px-3';
-                noticeWarning.querySelector('strong').innerText = 'Plazo insuficiente';
-                noticeWarning.querySelector('p').innerHTML = 'La solicitud debe realizarse con al menos <strong>15 días hábiles</strong> de antelación. Actualmente faltan <strong>' + businessDaysLeft + '</strong> días hábiles.';
-                btnSubmitRequest.disabled = true;
-                btnSubmitRequest.classList.add('opacity-50', 'pe-none');
-                bulkActionContainer.classList.add('hidden');
+                noticeWarning.querySelector('.alert').className = 'alert alert-warning d-flex align-items-start gap-2 mb-0 py-2 px-3';
+                noticeWarning.querySelector('strong').innerText = 'Aviso de plazo';
+                noticeWarning.querySelector('p').innerHTML = 'La solicitud debería realizarse con al menos <strong>15 días hábiles</strong> de antelación. Actualmente faltan <strong id="notice-days-remaining">' + businessDaysLeft + '</strong> días hábiles. Puedes introducir el permiso igualmente.';
+                btnSubmitRequest.disabled = false;
+                btnSubmitRequest.classList.remove('opacity-50', 'pe-none');
+                // Restaurar visibilidad del bulk si corresponde (no lectivo)
+                const isN = (window.app.config.nonTeachingDays || []).includes(ds);
+                if (isN) {
+                    bulkActionContainer.classList.remove('hidden');
+                }
             } else {
                 noticeWarning.classList.add('hidden');
                 btnSubmitRequest.disabled = false;
