@@ -1412,8 +1412,8 @@
     </div>
 
     <!-- Modal para gestionar solicitudes de permisos -->
-    <div id="modal-request" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-3 hidden">
-        <div class="bg-white rounded shadow-lg w-100 d-flex flex-column" style="max-width: 450px; max-height: 90vh;">
+    <div id="modal-request" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-3 hidden" onclick="window.app.closeModal('modal-request')">
+        <div class="bg-white rounded shadow-lg w-100 d-flex flex-column" style="max-width: 450px; max-height: 90vh;" onclick="event.stopPropagation()">
             <div class="bg-blue-700 text-white p-3 d-flex justify-content-between align-items-center rounded-top">
                 <h3 class="h6 fw-bold mb-0" id="modal-request-title">Gestionar día</h3>
                 <button onclick="window.app.closeModal('modal-request')" class="btn btn-sm text-white p-0"><i data-lucide="x"></i></button>
@@ -1423,8 +1423,8 @@
                     <h4 class="small fw-bold text-secondary text-uppercase mb-2">Solicitudes en este día</h4>
                     <div id="request-list-container" class="vstack gap-2"></div>
                 </div>
-                <hr>
-                <div>
+                <hr id="modal-request-hr">
+                <div id="modal-add-section">
                     <h4 class="small fw-bold text-primary text-uppercase mb-3">Añadir nueva solicitud</h4>
                     <div class="vstack gap-3">
                         <div>
@@ -1471,6 +1471,15 @@
                                 <i data-lucide="users" style="width:16px"></i> Añadir a todo el Claustro
                             </button>
                             <p class="small text-muted mt-1 text-center mb-0">Solo se añadirán los que cumplan los requisitos.</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="modal-day-full-notice" class="hidden">
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-0 py-2 px-3" role="alert">
+                        <i data-lucide="info" style="width:18px; min-width:18px; color:#d97706; margin-top:2px;"></i>
+                        <div>
+                            <strong class="small">Día completo</strong>
+                            <p class="small mb-0 mt-1">Este día lectivo ya tiene 2 permisos registrados. Debes eliminar uno antes de poder añadir otro.</p>
                         </div>
                     </div>
                 </div>
@@ -2846,6 +2855,22 @@
             }
         };
 
+        // ── Wrapper seguro para clics en celdas del calendario ──
+        window.app._safeCellClick = function(ds) {
+            try {
+                var modal = document.getElementById('modal-request');
+                if (!modal) { console.error('[safeCellClick] modal no encontrado'); return; }
+                modal.classList.add('hidden');
+                window.app.openRequestModal(ds);
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error('[safeCellClick] Error:', err);
+                try { renderCalendar(); } catch(e2) {}
+            }
+        };
+
         window.app.openRequestModal = (ds) => {
             window.app.selectedDate = ds;
             const isN = (window.app.config.nonTeachingDays || []).includes(ds);
@@ -2905,16 +2930,36 @@
             const dateObj = new Date(ds + 'T12:00:00');
             document.getElementById('modal-request-title').innerText = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 
-            // ── Inicializar campo de fecha de solicitud a hoy ──
-            const inputRequestDate = document.getElementById('input-request-date');
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            inputRequestDate.value = `${yyyy}-${mm}-${dd}`;
+            // ── Controlar visibilidad del formulario de añadir según límite diario (2 en lectivo) ──
+            const dayFull = !isN && reqs.length >= 2;
+            const addSection = document.getElementById('modal-add-section');
+            const hrEl = document.getElementById('modal-request-hr');
+            const fullNotice = document.getElementById('modal-day-full-notice');
 
-            // ── Ejecutar validación de plazo mínimo de 15 días hábiles ──
-            window.app.validateMinBusinessDays();
+            if (dayFull && addSection && hrEl && fullNotice) {
+                addSection.classList.add('hidden');
+                hrEl.classList.add('hidden');
+                fullNotice.classList.remove('hidden');
+            } else if (addSection && hrEl && fullNotice) {
+                addSection.classList.remove('hidden');
+                hrEl.classList.remove('hidden');
+                fullNotice.classList.add('hidden');
+            }
+
+            if (!dayFull) {
+                // ── Inicializar campo de fecha de solicitud a hoy ──
+                const inputRequestDate = document.getElementById('input-request-date');
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                inputRequestDate.value = `${yyyy}-${mm}-${dd}`;
+
+                // ── Ejecutar validación de plazo mínimo de 15 días hábiles ──
+                window.app.validateMinBusinessDays();
+            }
+
+            if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch(e) {} }
 
             document.getElementById('modal-request').classList.remove('hidden');
         };
@@ -3337,20 +3382,6 @@
             // Configurar chips de impresión
             setupPrintMonths();
             lucide.createIcons();
-
-            // Event delegation para clicks en el calendario (más robusto que onclick inline)
-            if (!grid._clickDelegateReady) {
-                grid.addEventListener('click', (e) => {
-                    const cell = e.target.closest('.calendar-cell[data-date]');
-                    if (!cell) return;
-                    const dateStr = cell.dataset.date;
-                    if (!dateStr) return;
-                    // Verificar si la celda es no clicable
-                    if (cell.classList.contains('cell-weekend') || cell.classList.contains('cell-unavailable')) return;
-                    window.app.openRequestModal(dateStr);
-                });
-                grid._clickDelegateReady = true;
-            }
         }
 
         function buildMonthCard(year, monthIdx, monthName) {
@@ -3392,8 +3423,10 @@
                 if (reqs.length > 0) cellClass += ' cell-active';
 
                 const tooltip = buildTooltip(dateStr, isWeekend, isLocal, isProv, isUnavail, isNonTeach, reqs);
+                const canClick = !isWeekend && !isLocal && !isProv && !isUnavail && !isNonTeach;
+                const onclickAttr = canClick ? ` onclick="window.app._safeCellClick('${dateStr}')"` : '';
 
-                html += `<div class="${cellClass}" data-date="${dateStr}" ${tooltip}>`;
+                html += `<div class="${cellClass}" data-date="${dateStr}"${onclickAttr} ${tooltip}>`;
                 html += `<span>${day}</span>`;
 
                 if (reqs.length > 0) {
