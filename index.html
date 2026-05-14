@@ -71,7 +71,7 @@
         .cell-local { background-color: #F3E8FF !important; cursor: not-allowed; } 
         .cell-prov { background-color: #FFEDD5 !important; cursor: not-allowed; } 
         .cell-unavailable { background-color: #F1F5F9 !important; cursor: not-allowed; }  /* NUEVO: Días no disponibles */
-        .cell-non-teaching { background-color: #FEF9C3 !important; }
+        .cell-non-teaching { background-color: #FEF9C3 !important; } 
         .cell-active { box-shadow: inset 0 0 0 2px #3B82F6; }
 
         /* Loader */
@@ -1399,7 +1399,7 @@
                 <i data-lucide="alert-triangle" style="width:16px"></i> <span id="conflict-message"></span>
             </div>
             <label class="form-label small text-secondary" id="label-start-date">Fecha:</label>
-            <input type="date" id="input-holiday-date" class="form-control mb-3" oninput="window.app._onHolidayDateInput()">
+            <input type="date" id="input-holiday-date" class="form-control mb-3">
             <div id="container-end-date" class="hidden">
                 <label class="form-label small text-secondary">Fecha Fin (Tramo):</label>
                 <input type="date" id="input-holiday-end-date" class="form-control mb-3">
@@ -1941,55 +1941,6 @@
         };
 
         // ================================================
-        // CONSTANTES Y UTILIDADES
-        // ================================================
-        const DEFAULT_RETRIBUTED_DAYS = 2;
-
-        const TYPE_LABELS = {
-            'paid_teaching': 'Retr. Lect.',
-            'paid_non_teaching': 'Retr. NO Lect.',
-            'unpaid': 'No Retr.'
-        };
-
-        const TYPE_LABELS_LONG = {
-            'paid_teaching': 'Retribuidos Lectivos',
-            'paid_non_teaching': 'Retribuidos No Lectivos',
-            'unpaid': 'No Retribuidos'
-        };
-
-        const TYPE_LABELS_PDF = {
-            'paid_teaching': 'Retr.Lect.',
-            'paid_non_teaching': 'Retr.NO Lect.',
-            'unpaid': 'No Retr.'
-        };
-
-        const TYPE_CSS = {
-            'paid_teaching': 'bg-primary-subtle text-primary border border-primary-subtle',
-            'paid_non_teaching': 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
-            'unpaid': 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle'
-        };
-
-        const HOLIDAY_CONFIG = {
-            local:        { key: 'localHolidays',    cls: 'bg-purple-100 text-purple-700' },
-            provincial:   { key: 'provHolidays',     cls: 'bg-orange-100 text-orange-700' },
-            unavailable:  { key: 'unavailableDays',  cls: 'bg-gray-100 text-gray-700' },
-            nonTeaching:  { key: 'nonTeachingDays',  cls: 'bg-yellow-100 text-yellow-700' }
-        };
-
-        const TYPE_TO_CONFIG = { local: 'localHolidays', provincial: 'provHolidays', unavailable: 'unavailableDays', nonTeaching: 'nonTeachingDays' };
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            const d = document.createElement('div');
-            d.textContent = str;
-            return d.innerHTML;
-        }
-
-        function getMaxRetDays(teacher) {
-            return (teacher && teacher.maxRetributedDays !== undefined) ? teacher.maxRetributedDays : DEFAULT_RETRIBUTED_DAYS;
-        }
-
-        // ================================================
         // INICIALIZACIÓN PRINCIPAL
         // ================================================
         async function init() {
@@ -2026,12 +1977,9 @@
                 }
             } catch (err) {
                 console.error('Error en init:', err);
-                // Distinguir entre error de Firebase no configurado y otros errores
-                if (err.message && err.message.includes('Firebase')) {
-                    document.getElementById('firebase-setup-overlay').classList.remove('hidden');
-                }
-                document.getElementById('app-loader').classList.add('hidden');
                 showNotification('Error al inicializar: ' + err.message, 'error');
+                document.getElementById('app-loader').classList.add('hidden');
+                document.getElementById('firebase-setup-overlay').classList.remove('hidden');
             } finally {
                 const loader = document.getElementById('app-loader');
                 if (loader) {
@@ -2316,12 +2264,11 @@
                         window.app.renderSummaryTable();
                         window.app.renderReportTable();
 
-                        // Si el modal de solicitudes está abierto, refrescar
-                        // SOLO la lista de solicitudes (no reabrir el modal completo
-                        // para evitar mostrar el aviso de "día completo" falso).
+                        // Si el modal de solicitudes está abierto, refrescarlo
+                        // para mostrar los datos actualizados sin duplicados.
                         const modalEl = document.getElementById('modal-request');
                         if (modalEl && !modalEl.classList.contains('hidden') && window.app.selectedDate) {
-                            window.app.refreshRequestList(window.app.selectedDate);
+                            window.app.openRequestModal(window.app.selectedDate);
                         }
                     }
                 }, err => {
@@ -2361,8 +2308,8 @@
                     <div class="d-flex align-items-center gap-2">
                         <i data-lucide="user" style="width:14px; color:#2563EB;"></i>
                         <div>
-                            <span class="fw-bold">${escapeHtml(user.displayName)}</span>
-                            <span class="text-muted">(@${escapeHtml(user.username)})</span>
+                            <span class="fw-bold">${user.displayName}</span>
+                            <span class="text-muted">(@${user.username})</span>
                         </div>
                         ${roleBadge}
                         ${isCurrentUser ? '<span class="badge bg-success">Tú</span>' : ''}
@@ -2444,7 +2391,30 @@
         // ================================================
         // GUARDADO EN FIRESTORE
         // ================================================
-        async function saveConfigToFirestore(silent) {
+        window.app.saveToFirestore = async function() {
+            try {
+                showNotification('Guardando en base de datos...', 'info');
+
+                // Guardar configuración
+                await db.collection('schoolConfig').doc('main').set({
+                    startYear: window.app.config.startYear,
+                    teachers: window.app.config.teachers,
+                    localHolidays: window.app.config.localHolidays,
+                    provHolidays: window.app.config.provHolidays,
+                    unavailableDays: window.app.config.unavailableDays || [],
+                    nonTeachingDays: window.app.config.nonTeachingDays || [],
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                showNotification('Datos guardados en Firebase correctamente');
+            } catch (e) {
+                console.error('Error guardando en Firestore:', e);
+                showNotification('Error al guardar: ' + e.message, 'error');
+            }
+        };
+
+        // Función auxiliar para guardar config después de cambios
+        async function saveConfigToFirestore() {
             try {
                 await db.collection('schoolConfig').doc('main').set({
                     startYear: window.app.config.startYear,
@@ -2455,18 +2425,11 @@
                     nonTeachingDays: window.app.config.nonTeachingDays || [],
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
-                if (!silent) showNotification('Datos guardados en Firebase correctamente');
             } catch (e) {
                 console.error('Error guardando config:', e);
                 showNotification('Error al guardar configuración: ' + e.message, 'error');
             }
         }
-
-        window.app.saveToFirestore = async function() {
-            showNotification('Guardando en base de datos...', 'info');
-            await saveConfigToFirestore(true);
-            showNotification('Datos guardados en Firebase correctamente');
-        };
 
         // ================================================
         // FUNCIONES AUXILIARES
@@ -2481,9 +2444,12 @@
             const area = document.getElementById('notification-area');
             const msgEl = document.getElementById('notification-msg');
             area.classList.remove('hidden');
-            const bgColors = { success: '#16a34a', error: '#dc2626', info: '#2563EB' };
-            msgEl.style.backgroundColor = bgColors[type] || '#6b7280';
-            msgEl.className = `alert shadow-lg fw-bold text-white mb-0`;
+            msgEl.className = `alert shadow-lg fw-bold text-white mb-0 alert-${type === 'error' ? 'danger' : type === 'info' ? 'primary' : 'success'}`;
+            if (type === 'error') msgEl.classList.replace('alert-danger', '');
+            if (type === 'success') msgEl.style.backgroundColor = '#16a34a';
+            else if (type === 'error') msgEl.style.backgroundColor = '#dc2626';
+            else if (type === 'info') msgEl.style.backgroundColor = '#2563EB';
+            else msgEl.style.backgroundColor = '#6b7280';
             msgEl.textContent = msg;
             clearTimeout(window.app._notifTimeout);
             window.app._notifTimeout = setTimeout(() => area.classList.add('hidden'), 3000);
@@ -2582,7 +2548,7 @@
             const name = input.value.trim();
             if (!name) return;
 
-            const maxDays = parseInt(daysInput.value) || DEFAULT_RETRIBUTED_DAYS;
+            const maxDays = parseInt(daysInput.value) || 2;
             if (window.app.config.teachers.find(t => t.name.toLowerCase() === name.toLowerCase())) {
                 showNotification('Profesor ya existe', 'error');
                 return;
@@ -2619,30 +2585,6 @@
             }
         };
 
-        window.app.updateTeacherName = async (id, newName) => {
-            newName = newName.trim();
-            if (!newName || newName.length < 2) {
-                showNotification('El nombre debe tener al menos 2 caracteres', 'error');
-                renderAll();
-                return;
-            }
-            const duplicate = window.app.config.teachers.find(t => t.id !== id && t.name.toLowerCase() === newName.toLowerCase());
-            if (duplicate) {
-                showNotification('Ya existe un profesor con ese nombre', 'error');
-                renderAll();
-                return;
-            }
-            const teacher = window.app.config.teachers.find(t => t.id === id);
-            if (teacher) {
-                teacher.name = newName;
-                window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
-                await saveConfigToFirestore();
-                renderAll();
-                renderCalendar();
-                showNotification('Nombre actualizado');
-            }
-        };
-
         window.app.handleExcelUpload = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -2656,7 +2598,7 @@
                     if (row && row[0]) {
                         const val = String(row[0]).trim();
                         if (!['nombre', 'profesor', 'nombre_profesor', 'nombre del profesor'].includes(val.toLowerCase()) && val.length > 2 && !existing.has(val.toLowerCase())) {
-                            let maxDays = DEFAULT_RETRIBUTED_DAYS;
+                            let maxDays = 2;
                             if (row[1] !== undefined && row[1] !== null && row[1] !== '') {
                                 const parsed = parseInt(row[1]);
                                 if (!isNaN(parsed) && parsed >= 0) maxDays = parsed;
@@ -2703,23 +2645,8 @@
             return false;
         };
 
-        window.app._onHolidayDateInput = () => {
-            const ds = document.getElementById('input-holiday-date').value;
-            const warning = document.getElementById('date-conflict-warning');
-            const msg = document.getElementById('conflict-message');
-            if (!ds || !warning || !msg) return;
-            const type = window.app.tempHolidayType;
-            if (type && window.app.checkDateConflict(ds, type)) {
-                const categoryNames = { local: 'festivo local', provincial: 'festivo provincial', unavailable: 'día no disponible', nonTeaching: 'día no lectivo' };
-                msg.textContent = `Esta fecha ya existe como ${categoryNames[type] || 'otra categoría'}. Al guardar se moverá a la nueva categoría.`;
-                warning.classList.remove('hidden');
-            } else {
-                warning.classList.add('hidden');
-            }
-        };
-
         window.app.removeHoliday = async (type, date) => {
-            const target = TYPE_TO_CONFIG[type];
+            const target = type === 'local' ? 'localHolidays' : (type === 'provincial' ? 'provHolidays' : (type === 'unavailable' ? 'unavailableDays' : 'nonTeachingDays'));
             window.app.config[target] = window.app.config[target].filter(d => d !== date);
             renderAll();
             renderCalendar();
@@ -2727,8 +2654,9 @@
         };
 
         window.app.clearHolidays = async (type) => {
+            const map = { local: 'localHolidays', provincial: 'provHolidays', unavailable: 'unavailableDays', nonTeaching: 'nonTeachingDays' };
             if (confirm(`¿Borrar TODOS los días de esta categoría?`)) {
-                window.app.config[TYPE_TO_CONFIG[type]] = [];
+                window.app.config[map[type]] = [];
                 renderAll();
                 renderCalendar();
                 await saveConfigToFirestore();
@@ -2740,11 +2668,12 @@
             const ds = document.getElementById('input-holiday-date').value;
             if (!ds) return;
             const type = window.app.tempHolidayType;
-            const target = TYPE_TO_CONFIG[type];
+            const target = type === 'local' ? 'localHolidays' : (type === 'provincial' ? 'provHolidays' : (type === 'unavailable' ? 'unavailableDays' : 'nonTeachingDays'));
             if (!window.app.config[target]) window.app.config[target] = [];
 
             const removeDateFromOtherCategories = (dateStr, currentType) => {
-                Object.values(TYPE_TO_CONFIG).forEach(t => {
+                const allTypes = ['localHolidays', 'provHolidays', 'unavailableDays', 'nonTeachingDays'];
+                allTypes.forEach(t => {
                     if (t !== currentType && window.app.config[t]) {
                         window.app.config[t] = window.app.config[t].filter(d => d !== dateStr);
                     }
@@ -2885,49 +2814,32 @@
             const ds = window.app.selectedDate;
             const MIN_BUSINESS_DAYS = 15;
 
-            const noticeWarning       = document.getElementById('notice-warning');
-            const btnSubmitRequest    = document.getElementById('btn-submit-request');
+            const noticeWarning      = document.getElementById('notice-warning');
+            const noticeDaysRemaining = document.getElementById('notice-days-remaining');
+            const btnSubmitRequest   = document.getElementById('btn-submit-request');
             const bulkActionContainer = document.getElementById('bulk-action-container');
 
             // Si no se ha introducido fecha de solicitud → bloquear
             if (!requestDateVal) {
                 noticeWarning.classList.remove('hidden');
+                noticeDaysRemaining.innerText = '?';
                 noticeWarning.querySelector('.alert').className = 'alert alert-warning d-flex align-items-start gap-2 mb-0 py-2 px-3';
                 noticeWarning.querySelector('strong').innerText = 'Fecha de solicitud requerida';
-                noticeWarning.querySelector('p').innerHTML = 'Debes introducir la fecha en la que se realiza la solicitud para comprobar el plazo.';
+                noticeWarning.querySelector('p').innerText = 'Debes introducir la fecha en la que se realiza la solicitud para comprobar el plazo.';
                 btnSubmitRequest.disabled = true;
                 btnSubmitRequest.classList.add('opacity-50', 'pe-none');
                 bulkActionContainer.classList.add('hidden');
                 return;
             }
 
-            // Si la fecha del permiso es pasada o hoy → permitir sin validación
-            // (puede ser una actualización de la base de datos con un registro anterior)
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const permDate = new Date(ds + 'T12:00:00');
-            permDate.setHours(0, 0, 0, 0);
-            const isPastOrToday = permDate <= today;
-
-            if (isPastOrToday) {
-                noticeWarning.classList.add('hidden');
-                btnSubmitRequest.disabled = false;
-                btnSubmitRequest.classList.remove('opacity-50', 'pe-none');
-                const isN = (window.app.config.nonTeachingDays || []).includes(ds);
-                if (isN) { bulkActionContainer.classList.remove('hidden'); }
-                return;
-            }
-
-            // Fecha futura: validar plazo mínimo de 15 días hábiles
             const businessDaysLeft = window.app.countBusinessDaysBetween(requestDateVal, ds);
 
             if (businessDaysLeft < MIN_BUSINESS_DAYS) {
                 noticeWarning.classList.remove('hidden');
+                noticeDaysRemaining.innerText = businessDaysLeft;
                 noticeWarning.querySelector('.alert').className = 'alert alert-danger d-flex align-items-start gap-2 mb-0 py-2 px-3';
                 noticeWarning.querySelector('strong').innerText = 'Plazo insuficiente';
-                // IMPORTANTE: incluir id="notice-days-remaining" en el innerHTML
-                // para que el elemento no se pierda en llamadas sucesivas.
-                noticeWarning.querySelector('p').innerHTML = 'La solicitud debe realizarse con al menos <strong>15 días hábiles</strong> de antelación. Actualmente faltan <strong id="notice-days-remaining">' + businessDaysLeft + '</strong> días hábiles.';
+                noticeWarning.querySelector('p').innerHTML = 'La solicitud debe realizarse con al menos <strong>15 días hábiles</strong> de antelación. Actualmente faltan <strong>' + businessDaysLeft + '</strong> días hábiles.';
                 btnSubmitRequest.disabled = true;
                 btnSubmitRequest.classList.add('opacity-50', 'pe-none');
                 bulkActionContainer.classList.add('hidden');
@@ -2935,92 +2847,28 @@
                 noticeWarning.classList.add('hidden');
                 btnSubmitRequest.disabled = false;
                 btnSubmitRequest.classList.remove('opacity-50', 'pe-none');
+                // Restaurar visibilidad del bulk si corresponde (no lectivo)
                 const isN = (window.app.config.nonTeachingDays || []).includes(ds);
-                if (isN) { bulkActionContainer.classList.remove('hidden'); }
-            }
-        };
-
-        // ── Edición inline del nombre de un profesor ──
-        window.app._startEditTeacherName = (spanEl, teacherId) => {
-            const currentName = spanEl.innerText;
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = currentName;
-            input.className = 'form-control form-control-sm';
-            input.style.cssText = 'width:auto; min-width:120px; padding:1px 6px; font-size:0.8rem;';
-
-            const save = () => {
-                const newName = input.value.trim();
-                if (newName && newName !== currentName) {
-                    window.app.updateTeacherName(teacherId, newName);
-                } else {
-                    renderAll();
+                if (isN) {
+                    bulkActionContainer.classList.remove('hidden');
                 }
-            };
-
-            input.addEventListener('blur', save);
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-                if (e.key === 'Escape') { renderAll(); }
-            });
-
-            spanEl.replaceWith(input);
-            input.focus();
-            input.select();
-        };
-
-        // ── Refrescar SOLO la lista de solicitudes del modal (sin reconfigurar el formulario) ──
-        // Se usa desde el onSnapshot listener para evitar el aviso falso de "día completo"
-        // tras guardar una solicitud que completa el cupo del día.
-        window.app.refreshRequestList = (ds) => {
-            const c = document.getElementById('request-list-container');
-            if (!c) return;
-            c.innerHTML = '';
-            const reqs = window.app.requests.filter(r => r.date === ds);
-            if (reqs.length === 0) {
-                c.innerHTML = '<p class="text-secondary small fst-italic">Ninguna.</p>';
-            } else {
-                reqs.forEach(r => {
-                    const name = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
-                    const lbl = TYPE_LABELS[r.type];
-                    const cls = TYPE_CSS[r.type] || '';
-                    const d = document.createElement('div');
-                    d.className = "d-flex justify-content-between align-items-center bg-light p-2 rounded border";
-                    d.innerHTML = `<div><span class="fw-bold small d-block">${escapeHtml(name)}</span><span class="badge rounded-pill ${cls}">${lbl}</span></div><button onclick="window.app.deleteRequest('${r.id}')" class="btn btn-sm text-danger p-0"><i data-lucide="trash-2" style="width:16px"></i></button>`;
-                    c.appendChild(d);
-                });
-                try { lucide.createIcons(); } catch(e) {}
-            }
-
-            // Actualizar el estado del formulario según el nuevo count
-            const isN = (window.app.config.nonTeachingDays || []).includes(ds);
-            const dayFull = !isN && reqs.length >= 2;
-            const addSection = document.getElementById('modal-add-section');
-            const hrEl = document.getElementById('modal-request-hr');
-            const fullNotice = document.getElementById('modal-day-full-notice');
-
-            if (dayFull && addSection && hrEl && fullNotice) {
-                addSection.classList.add('hidden');
-                hrEl.classList.add('hidden');
-                fullNotice.classList.remove('hidden');
-            } else if (addSection && hrEl && fullNotice) {
-                addSection.classList.remove('hidden');
-                hrEl.classList.remove('hidden');
-                fullNotice.classList.add('hidden');
             }
         };
 
         // ── Wrapper seguro para clics en celdas del calendario ──
         window.app._safeCellClick = function(ds) {
             try {
+                var modal = document.getElementById('modal-request');
+                if (!modal) { console.error('[safeCellClick] modal no encontrado'); return; }
+                modal.classList.add('hidden');
                 window.app.openRequestModal(ds);
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                }
             } catch (err) {
-                console.error('[safeCellClick] Error en openRequestModal:', err);
+                console.error('[safeCellClick] Error:', err);
                 try { renderCalendar(); } catch(e2) {}
             }
-            // Asegurar que el modal siempre sea visible, independientemente de errores
-            var modal = document.getElementById('modal-request');
-            if (modal) modal.classList.remove('hidden');
         };
 
         window.app.openRequestModal = (ds) => {
@@ -3066,14 +2914,17 @@
             } else {
                 reqs.forEach(r => {
                     const name = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
-                    const lbl = TYPE_LABELS[r.type];
-                    const cls = TYPE_CSS[r.type] || '';
+                    const lbl = { 'paid_teaching': 'Retr. Lect.', 'paid_non_teaching': 'Retr. NO Lect.', 'unpaid': 'No Retr.' }[r.type];
+                    let cls = '';
+                    if (r.type === 'paid_teaching') cls = 'bg-primary-subtle text-primary border border-primary-subtle';
+                    if (r.type === 'paid_non_teaching') cls = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+                    if (r.type === 'unpaid') cls = 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle';
                     const d = document.createElement('div');
                     d.className = "d-flex justify-content-between align-items-center bg-light p-2 rounded border";
-                    d.innerHTML = `<div><span class="fw-bold small d-block">${escapeHtml(name)}</span><span class="badge rounded-pill ${cls}">${lbl}</span></div><button onclick="window.app.deleteRequest('${r.id}')" class="btn btn-sm text-danger p-0"><i data-lucide="trash-2" style="width:16px"></i></button>`;
+                    d.innerHTML = `<div><span class="fw-bold small d-block">${name}</span><span class="badge rounded-pill ${cls}">${lbl}</span></div><button onclick="window.app.deleteRequest('${r.id}')" class="btn btn-sm text-danger p-0"><i data-lucide="trash-2" style="width:16px"></i></button>`;
                     c.appendChild(d);
                 });
-                try { lucide.createIcons(); } catch(e) {}
+                lucide.createIcons();
             }
 
             const dateObj = new Date(ds + 'T12:00:00');
@@ -3214,7 +3065,7 @@
             if (!isN) { if (window.app.requests.filter(r => r.date === ds).length >= 2) return alert('Límite diario (2) alcanzado.'); }
 
             const teacher = window.app.config.teachers.find(t => t.id === tid);
-            const maxRetDays = getMaxRetDays(teacher);
+            const maxRetDays = (teacher && teacher.maxRetributedDays !== undefined) ? teacher.maxRetributedDays : 2;
             const treqs = window.app.requests.filter(r => r.teacherId === tid);
             if (type === 'paid_teaching' && treqs.filter(r => r.type === 'paid_teaching').length >= maxRetDays) return alert(`Máximo ${maxRetDays} Retribuidos Lectivos.`);
             if (type === 'paid_non_teaching' && treqs.filter(r => r.type === 'paid_non_teaching').length >= 4) return alert('Máximo 4 Retribuidos No Lectivos.');
@@ -3238,10 +3089,8 @@
                 // Resetear selector de profesor para permitir añadir otro rápidamente
                 document.getElementById('req-teacher-select').value = '';
 
-                // Actualizar la vista: refrescar lista del modal y calendario.
-                // Se usa refreshRequestList en lugar de openRequestModal para
-                // evitar la condición de carrera con el onSnapshot listener
-                // que causaba el aviso falso de "día completo".
+                // Actualizar la vista del modal y el calendario
+                window.app.openRequestModal(ds);
                 renderCalendar();
                 window.app.renderSummaryTable();
                 window.app.renderReportTable();
@@ -3260,15 +3109,16 @@
             const type = document.querySelector('input[name="reqType"]:checked')?.value;
             if (!type) { alert('Debes seleccionar un tipo de permiso'); return; }
 
+            const requestDateVal = document.getElementById('input-request-date').value;
+
             // ── Validación de plazo mínimo: 15 días hábiles (solo fechas futuras) ──
             const todayBulk = new Date();
             todayBulk.setHours(0, 0, 0, 0);
             const permDateBulk = new Date(ds + 'T12:00:00');
             permDateBulk.setHours(0, 0, 0, 0);
             if (permDateBulk > todayBulk) {
-                const requestDateValBulk = document.getElementById('input-request-date').value;
-                if (!requestDateValBulk) return alert('Debes introducir la fecha de solicitud.');
-                const businessDaysLeftBulk = window.app.countBusinessDaysBetween(requestDateValBulk, ds);
+                if (!requestDateVal) return alert('Debes introducir la fecha de solicitud.');
+                const businessDaysLeft = window.app.countBusinessDaysBetween(requestDateVal, ds);
                 // Solo se muestra el aviso en el modal; no se bloquea el envío.
             }
 
@@ -3278,14 +3128,11 @@
             let add = 0;
             const batch = db.batch();
             const reqsRef = db.collection('requests');
-            const isN = (window.app.config.nonTeachingDays || []).includes(ds);
 
             window.app.config.teachers.forEach(t => {
                 if (window.app.requests.find(r => r.date === ds && r.teacherId === t.id)) return;
-                // Respetar límite diario de 2 en días lectivos
-                if (!isN && window.app.requests.filter(r => r.date === ds).length + add >= 2) return;
                 const treqs = window.app.requests.filter(r => r.teacherId === t.id);
-                const maxRetDays = getMaxRetDays(t);
+                const maxRetDays = (t.maxRetributedDays !== undefined) ? t.maxRetributedDays : 2;
                 if (type === 'paid_teaching' && treqs.filter(r => r.type === 'paid_teaching').length >= maxRetDays) return;
                 if (type === 'paid_non_teaching' && treqs.filter(r => r.type === 'paid_non_teaching').length >= 4) return;
                 batch.set(reqsRef.doc(), {
@@ -3307,7 +3154,8 @@
                 await batch.commit();
                 _setSubmitBtnState(btnSubmit, 'saved');
                 showNotification(`${add} permisos guardados`);
-                // El listener onSnapshot refrescará la lista del modal automáticamente.
+                // El listener actualizará los datos
+                window.app.openRequestModal(ds);
                 renderCalendar();
                 window.app.renderSummaryTable();
                 window.app.renderReportTable();
@@ -3471,14 +3319,12 @@
             listT.innerHTML = '';
             document.getElementById('teacher-count').innerText = `Listado (${window.app.config.teachers.length})`;
             window.app.config.teachers.forEach(t => {
-                const maxDays = getMaxRetDays(t);
+                const maxDays = (t.maxRetributedDays !== undefined) ? t.maxRetributedDays : 2;
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center bg-light small';
                 li.innerHTML = `
                     <div class="d-flex align-items-center gap-2 flex-grow-1">
-                        <span class="text-truncate" style="cursor:pointer; border-bottom:1px dashed #9ca3af;"
-                              onclick="window.app._startEditTeacherName(this, '${t.id}')"
-                              title="Clic para editar el nombre">${escapeHtml(t.name)}</span>
+                        <span class="text-truncate">${t.name}</span>
                         <div class="d-flex align-items-center gap-1" title="Días retribuidos asignados">
                             <i data-lucide="calendar-check" style="width:13px; color:#2563EB; flex-shrink:0;"></i>
                             <input type="number" min="0" max="10" value="${maxDays}"
@@ -3500,14 +3346,17 @@
 
         function renderHolidayList(type, containerId) {
             const container = document.getElementById(containerId);
-            const cfg = HOLIDAY_CONFIG[type];
-            if (!cfg) return;
-            const list = window.app.config[cfg.key] || [];
+            let list = [];
+            let colorClass = '';
+            if (type === 'local') { list = window.app.config.localHolidays; colorClass = 'bg-purple-100 text-purple-700'; }
+            else if (type === 'provincial') { list = window.app.config.provHolidays; colorClass = 'bg-orange-100 text-orange-700'; }
+            else if (type === 'unavailable') { list = window.app.config.unavailableDays || []; colorClass = 'bg-gray-100 text-gray-700'; }
+            else if (type === 'nonTeaching') { list = window.app.config.nonTeachingDays || []; colorClass = 'bg-yellow-100 text-yellow-700'; }
             container.innerHTML = '';
             if (list.length === 0) { container.innerHTML = '<span class="text-secondary small fst-italic">Ninguno</span>'; return; }
             list.forEach(date => {
                 const span = document.createElement('span');
-                span.className = `${cfg.cls} px-2 py-1 rounded small d-flex align-items-center gap-1 fw-bold border border-light`;
+                span.className = `${colorClass} px-2 py-1 rounded small d-flex align-items-center gap-1 fw-bold border border-light`;
                 const dateObj = new Date(date + 'T12:00:00');
                 span.innerHTML = `${dateObj.toLocaleDateString()} <i data-lucide="x" style="width:12px; cursor:pointer" onclick="window.app.removeHoliday('${type}', '${date}')"></i>`;
                 container.appendChild(span);
@@ -3582,7 +3431,7 @@
                 if (reqs.length > 0) cellClass += ' cell-active';
 
                 const tooltip = buildTooltip(dateStr, isWeekend, isLocal, isProv, isUnavail, isNonTeach, reqs);
-                const canClick = !isWeekend && !isLocal && !isProv && !isUnavail;
+                const canClick = !isWeekend && !isLocal && !isProv && !isUnavail && !isNonTeach;
                 const onclickAttr = canClick ? ` onclick="window.app._safeCellClick('${dateStr}')"` : '';
 
                 html += `<div class="${cellClass}" data-date="${dateStr}"${onclickAttr} ${tooltip}>`;
@@ -3916,7 +3765,7 @@
                 const pt = rs.filter(r => r.type === 'paid_teaching').length;
                 const pnt = rs.filter(r => r.type === 'paid_non_teaching').length;
                 const u = rs.filter(r => r.type === 'unpaid').length;
-                const maxRetDays = getMaxRetDays(t);
+                const maxRetDays = (t.maxRetributedDays !== undefined) ? t.maxRetributedDays : 2;
                 const hasRequests = (pt > 0 || pnt > 0 || u > 0);
                 if (filter === 'with' && !hasRequests) return;
                 if (filter === 'without' && hasRequests) return;
@@ -3928,10 +3777,10 @@
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="fw-medium">${escapeHtml(t.name)}</td>
-                    <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${escapeHtml(t.name)}', 'paid_teaching')"><span class="badge rounded-pill ${pt >= maxRetDays ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'}">${pt} / ${maxRetDays}</span></button></td>
-                    <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${escapeHtml(t.name)}', 'paid_non_teaching')"><span class="badge rounded-pill ${pnt >= 4 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning-emphasis'}">${pnt} / 4</span></button></td>
-                    <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${escapeHtml(t.name)}', 'unpaid')"><span class="badge rounded-pill bg-light text-dark border">${u}</span></button></td>
+                    <td class="fw-medium">${t.name}</td>
+                    <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${t.name}', 'paid_teaching')"><span class="badge rounded-pill ${pt >= maxRetDays ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'}">${pt} / ${maxRetDays}</span></button></td>
+                    <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${t.name}', 'paid_non_teaching')"><span class="badge rounded-pill ${pnt >= 4 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning-emphasis'}">${pnt} / 4</span></button></td>
+                    <td class="text-center"><button class="btn btn-link p-0 text-decoration-none" onclick="window.app.showTeacherPermitsByType('${t.id}', '${t.name}', 'unpaid')"><span class="badge rounded-pill bg-light text-dark border">${u}</span></button></td>
                     <td class="text-center">${statusHtml}</td>`;
                 tb.appendChild(tr);
             });
@@ -3950,17 +3799,17 @@
             if (res.length === 0) tb.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-muted">Sin datos.</td></tr>';
             res.forEach(r => {
                 const n = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
-                const l = TYPE_LABELS[r.type];
+                const l = { 'paid_teaching': 'Retr. Lect.', 'paid_non_teaching': 'Retr. NO Lect.', 'unpaid': 'No Retr.' }[r.type];
                 const tr = document.createElement('tr');
                 const dateObj = new Date(r.date + 'T12:00:00');
-                tr.innerHTML = `<td>${dateObj.toLocaleDateString()}</td><td class="fw-bold">${escapeHtml(n)}</td><td>${l}</td>`;
+                tr.innerHTML = `<td>${dateObj.toLocaleDateString()}</td><td class="fw-bold">${n}</td><td>${l}</td>`;
                 tb.appendChild(tr);
             });
         };
 
         window.app.showTeacherPermitsByType = (teacherId, teacherName, type) => {
             const reqs = window.app.requests.filter(r => r.teacherId === teacherId && r.type === type);
-            const lbl = TYPE_LABELS_LONG[type];
+            const lbl = { 'paid_teaching': 'Retribuidos Lectivos', 'paid_non_teaching': 'Retribuidos No Lectivos', 'unpaid': 'No Retribuidos' }[type];
             document.getElementById('modal-teacher-permits-title').textContent = `${teacherName} - ${lbl}`;
             const body = document.getElementById('modal-teacher-permits-body');
             if (reqs.length === 0) {
@@ -3991,7 +3840,7 @@
                     const teachersSorted = [...window.app.config.teachers].sort((a, b) => a.name.localeCompare(b.name));
                     const rows = teachersSorted.map(t => {
                         const rs = window.app.requests.filter(r => r.teacherId === t.id);
-                        const maxRetDays = getMaxRetDays(t);
+                        const maxRetDays = (t.maxRetributedDays !== undefined) ? t.maxRetributedDays : 2;
                         return [t.name, rs.filter(r => r.type === 'paid_teaching').length + '/' + maxRetDays, rs.filter(r => r.type === 'paid_non_teaching').length + '/4', rs.filter(r => r.type === 'unpaid').length];
                     });
                     doc.autoTable({
@@ -4007,7 +3856,7 @@
                     doc.text(`Informe: ${s} a ${e}`, 14, 25);
                     const rows = res.map(r => {
                         const n = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
-                        const l = TYPE_LABELS_PDF[r.type];
+                        const l = { 'paid_teaching': 'Retr.Lect.', 'paid_non_teaching': 'Retr.NO Lect.', 'unpaid': 'No Retr.' }[r.type];
                         return [new Date(r.date + 'T12:00:00').toLocaleDateString(), n, l];
                     });
                     doc.autoTable({
