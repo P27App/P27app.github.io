@@ -2066,12 +2066,22 @@
                                 await loadAppData();
                             }
                         } catch (validationErr) {
-                            // Si no se puede validar (ej: permisos), loadAppData() se encargará del error
-                            console.warn('No se pudo validar la sesión contra Firestore:', validationErr.message);
-                            await loadAppData();
+                            // Si no se puede validar por permisos, limpiar sesión y mostrar login
+                            // (NO llamar loadAppData() porque mostraría la interfaz fantasma)
+                            const isPermissionError = validationErr.message && (validationErr.message.includes('permission') || validationErr.message.includes('PERMISSION_DENIED'));
+                            if (isPermissionError) {
+                                console.warn('Permisos insuficientes al validar sesión:', validationErr.message);
+                                sessionStorage.removeItem('app_user');
+                                window.app.currentUser = null;
+                                await checkUsersAndShowLogin();
+                            } else {
+                                // Otros errores: intentar cargar datos de todos modos
+                                await loadAppData();
+                            }
                         }
                     } catch (e) {
                         sessionStorage.removeItem('app_user');
+                        window.app.currentUser = null;
                         await checkUsersAndShowLogin();
                     }
                 } else {
@@ -2235,15 +2245,19 @@
             }
         };
 
-        window.app.logout = function() {
+        window.app.logout = async function() {
             if (confirm('¿Cerrar sesión?')) {
                 // Desuscribir listeners
                 if (window.app.configUnsubscribe) window.app.configUnsubscribe();
                 if (window.app.requestsUnsubscribe) window.app.requestsUnsubscribe();
                 if (window.app.usersUnsubscribe) window.app.usersUnsubscribe();
+                window.app.configUnsubscribe = null;
+                window.app.requestsUnsubscribe = null;
+                window.app.usersUnsubscribe = null;
 
                 sessionStorage.removeItem('app_user');
                 window.app.currentUser = null;
+                window.app.needsAdminSetup = false;
                 window.app.config = {
                     startYear: new Date().getFullYear(),
                     teachers: [],
@@ -2263,7 +2277,6 @@
                 document.getElementById('user-info-badge').classList.add('hidden');
                 document.getElementById('btn-logout').classList.add('hidden');
                 document.getElementById('accordion-users').classList.add('hidden');
-                lucide.createIcons();
 
                 // BUG FIX: Re-evaluar si hay usuarios y configurar correctamente la pantalla de login
                 await checkUsersAndShowLogin();
