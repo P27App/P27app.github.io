@@ -2050,10 +2050,29 @@
                 if (savedUser) {
                     try {
                         window.app.currentUser = JSON.parse(savedUser);
-                        await loadAppData();
+                        // BUG FIX: Validar que el usuario todavía existe en Firestore antes de restaurar sesión
+                        try {
+                            const userSnapshot = await db.collection('users')
+                                .where('username', '==', window.app.currentUser.username)
+                                .limit(1)
+                                .get();
+                            if (userSnapshot.empty) {
+                                // El usuario fue eliminado de Firestore → sesión inválida
+                                console.warn('Sesión guardada pero usuario no encontrado en Firestore');
+                                sessionStorage.removeItem('app_user');
+                                window.app.currentUser = null;
+                                await checkUsersAndShowLogin();
+                            } else {
+                                await loadAppData();
+                            }
+                        } catch (validationErr) {
+                            // Si no se puede validar (ej: permisos), loadAppData() se encargará del error
+                            console.warn('No se pudo validar la sesión contra Firestore:', validationErr.message);
+                            await loadAppData();
+                        }
                     } catch (e) {
                         sessionStorage.removeItem('app_user');
-                        showLoginScreen();
+                        await checkUsersAndShowLogin();
                     }
                 } else {
                     // 4. Verificar si hay usuarios en la base de datos
@@ -2092,7 +2111,23 @@
                 showLoginScreen();
             } catch (e) {
                 console.error('Error verificando usuarios:', e);
-                showNotification('Error al conectar con la base de datos', 'error');
+                // BUG FIX: Siempre mostrar la pantalla de login, incluso si Firestore falla
+                const isPermissionError = e.message && (e.message.includes('permission') || e.message.includes('PERMISSION_DENIED'));
+                if (isPermissionError) {
+                    window.app.needsAdminSetup = false;
+                    document.getElementById('login-setup-section').classList.add('hidden');
+                    document.getElementById('login-btn').innerHTML = '<i data-lucide="log-in" style="width:16px;"></i> Iniciar Sesión';
+                    showLoginScreen();
+                    const errorEl = document.getElementById('login-error');
+                    errorEl.textContent = 'Error de permisos en Firebase. Las reglas de seguridad de Firestore han expirado o son restrictivas. Ve a Firebase Console → Firestore → Reglas y actualízalas para permitir acceso.';
+                    errorEl.classList.remove('hidden');
+                } else {
+                    window.app.needsAdminSetup = false;
+                    document.getElementById('login-setup-section').classList.add('hidden');
+                    document.getElementById('login-btn').innerHTML = '<i data-lucide="log-in" style="width:16px;"></i> Iniciar Sesión';
+                    showLoginScreen();
+                    showNotification('Error al conectar con la base de datos: ' + e.message, 'error');
+                }
             }
         }
 
@@ -2186,7 +2221,13 @@
                 }
             } catch (e) {
                 console.error('Error en login:', e);
-                errorEl.textContent = 'Error de conexión: ' + e.message;
+                // BUG FIX: Mensaje de error más descriptivo para errores de permisos de Firestore
+                const isPermissionError = e.message && (e.message.includes('permission') || e.message.includes('PERMISSION_DENIED'));
+                if (isPermissionError) {
+                    errorEl.textContent = 'Error de permisos en Firebase. Las reglas de seguridad de Firestore han expirado o son restrictivas. Ve a Firebase Console → Firestore → Reglas y actualízalas para permitir acceso.';
+                } else {
+                    errorEl.textContent = 'Error de conexión: ' + e.message;
+                }
                 errorEl.classList.remove('hidden');
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="log-in" style="width:16px;"></i> Iniciar Sesión';
@@ -2216,13 +2257,16 @@
                 };
                 window.app.requests = [];
 
-                document.getElementById('login-overlay').classList.remove('hidden');
                 document.getElementById('login-password').value = '';
+                document.getElementById('login-username').value = '';
                 document.getElementById('login-error').classList.add('hidden');
                 document.getElementById('user-info-badge').classList.add('hidden');
                 document.getElementById('btn-logout').classList.add('hidden');
                 document.getElementById('accordion-users').classList.add('hidden');
                 lucide.createIcons();
+
+                // BUG FIX: Re-evaluar si hay usuarios y configurar correctamente la pantalla de login
+                await checkUsersAndShowLogin();
             }
         };
 
@@ -2303,7 +2347,33 @@
                 showNotification('Datos cargados desde Firebase');
             } catch (e) {
                 console.error('Error cargando datos:', e);
-                showNotification('Error al cargar datos: ' + e.message, 'error');
+                // BUG FIX: Si hay error de permisos, cerrar sesión y mostrar login con mensaje claro
+                const isPermissionError = e.message && (e.message.includes('permission') || e.message.includes('PERMISSION_DENIED'));
+                if (isPermissionError) {
+                    // Limpiar sesión fantasma
+                    sessionStorage.removeItem('app_user');
+                    window.app.currentUser = null;
+                    window.app.config = {
+                        startYear: new Date().getFullYear(),
+                        teachers: [], holidays: [], nonTeachingNotifiedDays: [],
+                        freeDispositionDays: [], vacationPeriods: [], unavailableDays: [],
+                        nonTeachingDays: [], nonTeachingRanges: []
+                    };
+                    window.app.requests = [];
+
+                    // Ocultar elementos de sesión activa
+                    document.getElementById('user-info-badge').classList.add('hidden');
+                    document.getElementById('btn-logout').classList.add('hidden');
+                    document.getElementById('accordion-users').classList.add('hidden');
+
+                    // Mostrar login con error descriptivo
+                    showLoginScreen();
+                    const errorEl = document.getElementById('login-error');
+                    errorEl.textContent = 'Error de permisos en Firebase. Las reglas de seguridad de Firestore han expirado o son restrictivas. Ve a Firebase Console → Firestore → Reglas y actualízalas para permitir acceso.';
+                    errorEl.classList.remove('hidden');
+                } else {
+                    showNotification('Error al cargar datos: ' + e.message, 'error');
+                }
             } finally {
                 const loader = document.getElementById('app-loader');
                 if (loader) {
