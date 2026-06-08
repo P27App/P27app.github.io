@@ -891,6 +891,7 @@
                                         <div class="col-sm-4">
                                             <select id="new-user-role" class="form-select form-select-sm">
                                                 <option value="user">Usuario</option>
+                                                <option value="gestor">Gestor</option>
                                                 <option value="admin">Admin</option>
                                             </select>
                                         </div>
@@ -906,7 +907,7 @@
                 </div>
 
                 <!-- Acordeón 2: Datos del Curso -->
-                <div class="accordion-item">
+                <div id="accordion-course-data" class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
                             <div class="d-flex align-items-center gap-2 w-100">
@@ -931,7 +932,7 @@
                 </div>
                 
                 <!-- Acordeón 3: Profesorado -->
-                <div class="accordion-item">
+                <div id="accordion-teachers" class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
                             <div class="d-flex align-items-center gap-2 w-100">
@@ -991,10 +992,10 @@
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
                                     <p class="small text-muted mb-2">Festivos que no computan como días hábiles.</p>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 config-edit-actions">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearHolidays('holiday')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('holiday')" class="btn btn-sm bg-red-100 text-red-700 fw-bold py-0 px-2">+ Añadir</button>
+                                            <button onclick="window.app.clearHolidays('holiday')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2 config-edit-btn" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('holiday')" class="btn btn-sm bg-red-100 text-red-700 fw-bold py-0 px-2 config-edit-btn">+ Añadir</button>
                                         </div>
                                     </div>
                                     <div id="list-holidays" class="d-flex flex-wrap gap-2"></div>
@@ -1019,10 +1020,10 @@
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
                                     <p class="small text-muted mb-2">Días no lectivos comunicados por la administración. No computan como días hábiles.</p>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 config-edit-actions">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearHolidays('nonTeachingNotified')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('nonTeachingNotified')" class="btn btn-sm bg-teal-100 text-teal-700 fw-bold py-0 px-2">+ Añadir</button>
+                                            <button onclick="window.app.clearHolidays('nonTeachingNotified')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2 config-edit-btn" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('nonTeachingNotified')" class="btn btn-sm bg-teal-100 text-teal-700 fw-bold py-0 px-2 config-edit-btn">+ Añadir</button>
                                         </div>
                                     </div>
                                     <div id="list-non-teaching-notified-days" class="d-flex flex-wrap gap-2"></div>
@@ -1047,10 +1048,10 @@
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
                                     <p class="small text-muted mb-2">Días de libre disposición del profesorado. No computan como días hábiles.</p>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 config-edit-actions">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearHolidays('freeDisposition')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('freeDisposition')" class="btn btn-sm bg-green-100 text-green-700 fw-bold py-0 px-2">+ Añadir</button>
+                                            <button onclick="window.app.clearHolidays('freeDisposition')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2 config-edit-btn" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('freeDisposition')" class="btn btn-sm bg-green-100 text-green-700 fw-bold py-0 px-2 config-edit-btn">+ Añadir</button>
                                         </div>
                                     </div>
                                     <div id="list-free-disposition-days" class="d-flex flex-wrap gap-2"></div>
@@ -1075,10 +1076,10 @@
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
                                     <p class="small text-muted mb-2">Períodos vacacionales (Navidad, Semana Santa, Verano...). Se añaden por tramos de fecha inicio a fecha fin. No computan como días hábiles.</p>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 config-edit-actions">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearVacationPeriods()" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openVacationModal()" class="btn btn-sm bg-indigo-100 text-indigo-700 fw-bold py-0 px-2">+ Añadir Tramo</button>
+                                            <button onclick="window.app.clearVacationPeriods()" class="btn btn-link text-danger p-0 text-decoration-underline small me-2 config-edit-btn" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openVacationModal()" class="btn btn-sm bg-indigo-100 text-indigo-700 fw-bold py-0 px-2 config-edit-btn">+ Añadir Tramo</button>
                                         </div>
                                     </div>
                                     <div id="list-vacation-periods" class="d-flex flex-column gap-2"></div>
@@ -1102,10 +1103,10 @@
                         <div class="accordion-body">
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 config-edit-actions">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearHolidays('unavailable')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('unavailable')" class="btn btn-sm bg-gray-100 text-gray-700 fw-bold py-0 px-2">+ Añadir</button>
+                                            <button onclick="window.app.clearHolidays('unavailable')" class="btn btn-link text-danger p-0 text-decoration-underline small me-2 config-edit-btn" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('unavailable')" class="btn btn-sm bg-gray-100 text-gray-700 fw-bold py-0 px-2 config-edit-btn">+ Añadir</button>
                                         </div>
                                     </div>
                                     <div id="list-unavailable-days" class="d-flex flex-wrap gap-2"></div>
@@ -1129,10 +1130,10 @@
                         <div class="accordion-body">
                             <div class="card bg-white h-100">
                                 <div class="card-body p-3 d-flex flex-column gap-2">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 config-edit-actions">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <button onclick="window.app.clearNonTeachingRanges()" class="btn btn-link text-danger p-0 text-decoration-underline small me-2" style="font-size:0.75rem">Borrar todos</button>
-                                            <button onclick="window.app.openDateModal('nonTeaching')" class="btn btn-sm bg-yellow-100 text-yellow-700 fw-bold py-0 px-2">+ Añadir Tramo</button>
+                                            <button onclick="window.app.clearNonTeachingRanges()" class="btn btn-link text-danger p-0 text-decoration-underline small me-2 config-edit-btn" style="font-size:0.75rem">Borrar todos</button>
+                                            <button onclick="window.app.openDateModal('nonTeaching')" class="btn btn-sm bg-yellow-100 text-yellow-700 fw-bold py-0 px-2 config-edit-btn">+ Añadir Tramo</button>
                                         </div>
                                     </div>
                                     <div id="list-non-teaching-ranges" class="d-flex flex-column gap-2"></div>
@@ -1143,7 +1144,7 @@
                 </div>
                 
                 <!-- Acordeón 10: Borrado de Datos -->
-                <div class="accordion-item">
+                <div id="accordion-data-delete" class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTen" aria-expanded="false" aria-controls="collapseTen">
                             <div class="d-flex align-items-center gap-2 w-100">
@@ -1445,27 +1446,86 @@
             </div>
         </div>
 
-        <div class="card bg-white shadow-sm mt-4 border">
+        <div class="card bg-white shadow-sm mt-4 border" id="config-actions-card">
             <div class="card-body d-flex flex-wrap gap-2 align-items-center p-3">
-                <div class="d-flex gap-2 me-auto">
-                    <button onclick="window.app.exportJSON()" class="btn btn-primary d-flex align-items-center gap-2 btn-sm" style="background-color: #7e22ce; border-color: #7e22ce;">
+                <div class="d-flex gap-2 me-auto" id="data-io-buttons">
+                    <button id="btn-export-json" onclick="window.app.exportJSON()" class="btn btn-primary d-flex align-items-center gap-2 btn-sm" style="background-color: #7e22ce; border-color: #7e22ce;">
                         <i data-lucide="download" style="width:16px"></i> Exportar JSON
                     </button>
-                    <label class="btn btn-dark d-flex align-items-center gap-2 cursor-pointer btn-sm" style="background-color: #581c87; border-color: #581c87;">
+                    <label id="btn-import-json" class="btn btn-dark d-flex align-items-center gap-2 cursor-pointer btn-sm" style="background-color: #581c87; border-color: #581c87;">
                         <i data-lucide="upload" style="width:16px"></i> Importar JSON
                         <input type="file" accept=".json" class="hidden" onchange="window.app.importJSON(event)">
                     </label>
                 </div>
                 <div class="vr mx-2 d-none d-md-block"></div>
-                <button onclick="window.app.saveToFirestore()" class="btn btn-secondary d-flex align-items-center gap-2 btn-sm">
+                <button id="btn-save-db" onclick="window.app.saveToFirestore()" class="btn btn-secondary d-flex align-items-center gap-2 btn-sm">
                     <i data-lucide="save" style="width:16px"></i> Guardar en Base de Datos
-                </button>
-                <button onclick="window.app.logout()" class="btn btn-outline-danger d-flex align-items-center gap-2 btn-sm">
-                    <i data-lucide="log-out" style="width:16px"></i> Cerrar Sesión
                 </button>
             </div>
         </div>
     </main>
+
+    <!-- Modal simplificado para perfil usuario (solo lectura, sin nombres) -->
+    <div id="modal-usuario-day-summary" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-3 hidden" onclick="window.app.closeModal('modal-usuario-day-summary')">
+        <div class="bg-white rounded shadow-lg w-100 d-flex flex-column" style="max-width: 400px; max-height: 80vh;" onclick="event.stopPropagation()">
+            <div class="bg-blue-700 text-white p-3 d-flex justify-content-between align-items-center rounded-top">
+                <h3 class="h6 fw-bold mb-0" id="modal-usuario-day-title">Resumen del día</h3>
+                <button onclick="window.app.closeModal('modal-usuario-day-summary')" class="btn btn-sm text-white p-0"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-4 overflow-auto">
+                <div id="usuario-day-summary-content">
+                    <p class="text-secondary small fst-italic">Cargando...</p>
+                </div>
+            </div>
+            <div class="p-3 border-top d-flex justify-content-end">
+                <button onclick="window.app.closeModal('modal-usuario-day-summary')" class="btn btn-secondary btn-sm">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar usuario (admin) -->
+    <div id="modal-edit-user" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-3 hidden" onclick="window.app.closeModal('modal-edit-user')">
+        <div class="bg-white rounded shadow-lg w-100 d-flex flex-column" style="max-width: 420px; max-height: 90vh;" onclick="event.stopPropagation()">
+            <div class="bg-blue-700 text-white p-3 d-flex justify-content-between align-items-center rounded-top">
+                <h3 class="h6 fw-bold mb-0">Editar usuario</h3>
+                <button onclick="window.app.closeModal('modal-edit-user')" class="btn btn-sm text-white p-0"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-4 overflow-auto">
+                <div id="edit-user-error" class="alert alert-danger p-2 mb-3 small hidden"></div>
+                <div class="vstack gap-3">
+                    <div>
+                        <label class="form-label fw-medium small">Nombre de usuario</label>
+                        <input type="text" id="edit-user-username" class="form-control form-control-sm">
+                    </div>
+                    <div>
+                        <label class="form-label fw-medium small">Nombre a mostrar</label>
+                        <input type="text" id="edit-user-displayname" class="form-control form-control-sm">
+                    </div>
+                    <div>
+                        <label class="form-label fw-medium small">Rol</label>
+                        <select id="edit-user-role" class="form-select form-select-sm">
+                            <option value="user">Usuario</option>
+                            <option value="gestor">Gestor</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <hr class="my-1">
+                    <div>
+                        <label class="form-label fw-medium small">Nueva contraseña <span class="text-muted">(dejar vacío para no cambiarla)</span></label>
+                        <input type="password" id="edit-user-password" class="form-control form-control-sm" placeholder="Nueva contraseña" autocomplete="new-password">
+                    </div>
+                    <div>
+                        <label class="form-label fw-medium small">Confirmar contraseña</label>
+                        <input type="password" id="edit-user-password-confirm" class="form-control form-control-sm" placeholder="Repetir contraseña" autocomplete="new-password">
+                    </div>
+                </div>
+            </div>
+            <div class="p-3 border-top d-flex justify-content-end gap-2">
+                <button onclick="window.app.closeModal('modal-edit-user')" class="btn btn-light btn-sm">Cancelar</button>
+                <button onclick="window.app.saveEditedUser()" class="btn btn-primary btn-sm fw-bold">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal para añadir fechas (festivos, no disponibles, etc.) -->
     <div id="modal-holiday" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center z-3 hidden">
@@ -2247,41 +2307,169 @@
 
         window.app.logout = async function() {
             if (confirm('¿Cerrar sesión?')) {
-                // Desuscribir listeners
-                if (window.app.configUnsubscribe) window.app.configUnsubscribe();
-                if (window.app.requestsUnsubscribe) window.app.requestsUnsubscribe();
-                if (window.app.usersUnsubscribe) window.app.usersUnsubscribe();
-                window.app.configUnsubscribe = null;
-                window.app.requestsUnsubscribe = null;
-                window.app.usersUnsubscribe = null;
+                try {
+                    // Desuscribir listeners
+                    if (window.app.configUnsubscribe) try { window.app.configUnsubscribe(); } catch(e) {}
+                    if (window.app.requestsUnsubscribe) try { window.app.requestsUnsubscribe(); } catch(e) {}
+                    if (window.app.usersUnsubscribe) try { window.app.usersUnsubscribe(); } catch(e) {}
+                    window.app.configUnsubscribe = null;
+                    window.app.requestsUnsubscribe = null;
+                    window.app.usersUnsubscribe = null;
 
-                sessionStorage.removeItem('app_user');
-                window.app.currentUser = null;
-                window.app.needsAdminSetup = false;
-                window.app.config = {
-                    startYear: new Date().getFullYear(),
-                    teachers: [],
-                    holidays: [],
-                    nonTeachingNotifiedDays: [],
-                    freeDispositionDays: [],
-                    vacationPeriods: [],
-                    unavailableDays: [],
-                    nonTeachingDays: [],
-                    nonTeachingRanges: []
-                };
-                window.app.requests = [];
+                    sessionStorage.removeItem('app_user');
+                    window.app.currentUser = null;
+                    window.app.needsAdminSetup = false;
+                    window.app.selectedDate = null;
+                    window.app.config = {
+                        startYear: new Date().getFullYear(),
+                        teachers: [],
+                        holidays: [],
+                        nonTeachingNotifiedDays: [],
+                        freeDispositionDays: [],
+                        vacationPeriods: [],
+                        unavailableDays: [],
+                        nonTeachingDays: [],
+                        nonTeachingRanges: []
+                    };
+                    window.app.requests = [];
 
-                document.getElementById('login-password').value = '';
-                document.getElementById('login-username').value = '';
-                document.getElementById('login-error').classList.add('hidden');
-                document.getElementById('user-info-badge').classList.add('hidden');
-                document.getElementById('btn-logout').classList.add('hidden');
-                document.getElementById('accordion-users').classList.add('hidden');
+                    // Cerrar todos los modales abiertos
+                    document.querySelectorAll('#modal-request, #modal-holiday, #modal-usuario-day-summary, #modal-help, #modal-conflicts, #modal-day-full-notice, #modal-edit-range').forEach(m => {
+                        if (m) m.classList.add('hidden');
+                    });
 
-                // BUG FIX: Re-evaluar si hay usuarios y configurar correctamente la pantalla de login
-                await checkUsersAndShowLogin();
+                    // Limpiar formulario de login
+                    document.getElementById('login-password').value = '';
+                    document.getElementById('login-username').value = '';
+                    document.getElementById('login-error').classList.add('hidden');
+
+                    // Ocultar elementos de sesión activa
+                    document.getElementById('user-info-badge').classList.add('hidden');
+                    document.getElementById('btn-logout').classList.add('hidden');
+                    document.getElementById('accordion-users').classList.add('hidden');
+
+                    // Resetear botón de login a estado por defecto
+                    const loginBtn = document.getElementById('login-btn');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i data-lucide="log-in" style="width:16px;"></i> Iniciar Sesión';
+
+                    // Re-evaluar si hay usuarios y mostrar login
+                    await checkUsersAndShowLogin();
+                } catch (logoutErr) {
+                    console.error('Error en logout:', logoutErr);
+                    // Fallback: mostrar login de todos modos
+                    const loginBtn = document.getElementById('login-btn');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i data-lucide="log-in" style="width:16px;"></i> Iniciar Sesión';
+                    showLoginScreen();
+                }
+                lucide.createIcons();
             }
         };
+
+        // ================================================
+        // FUNCIONES DE PERMISOS POR ROL
+        // ================================================
+        function isUsuarioRole() {
+            return window.app.currentUser && window.app.currentUser.role === 'user';
+        }
+
+        function applyRoleUI() {
+            if (!window.app.currentUser) return;
+            const role = window.app.currentUser.role;
+
+            // ---- Primero restaurar todo a visibility por defecto ----
+            document.getElementById('accordion-users').classList.remove('hidden');
+            document.getElementById('accordion-course-data').classList.remove('hidden');
+            document.getElementById('accordion-teachers').classList.remove('hidden');
+            document.getElementById('accordion-data-delete').classList.remove('hidden');
+            document.getElementById('tab-stats').classList.remove('hidden');
+            document.querySelectorAll('.config-edit-btn').forEach(btn => btn.classList.remove('hidden'));
+            document.querySelectorAll('.config-edit-actions').forEach(el => el.classList.remove('hidden'));
+            const dataIO = document.getElementById('data-io-buttons');
+            if (dataIO) dataIO.classList.remove('hidden');
+            const btnSaveDB = document.getElementById('btn-save-db');
+            if (btnSaveDB) btnSaveDB.classList.remove('hidden');
+            document.getElementById('config-actions-card').classList.remove('hidden');
+
+            // ---- Perfil USUARIO (nuevo, con restricciones) ----
+            if (role === 'user') {
+                // Ocultar secciones 1, 2, 3, 10 de configuración
+                document.getElementById('accordion-users').classList.add('hidden');
+                document.getElementById('accordion-course-data').classList.add('hidden');
+                document.getElementById('accordion-teachers').classList.add('hidden');
+                document.getElementById('accordion-data-delete').classList.add('hidden');
+
+                // Ocultar botones de edición en secciones 4-9
+                document.querySelectorAll('.config-edit-btn').forEach(btn => btn.classList.add('hidden'));
+                document.querySelectorAll('.config-edit-actions').forEach(el => el.classList.add('hidden'));
+
+                // Ocultar tab Informes
+                document.getElementById('tab-stats').classList.add('hidden');
+
+                // Ocultar botones Exportar/Importar JSON y Guardar en BD
+                const dataIO = document.getElementById('data-io-buttons');
+                if (dataIO) dataIO.classList.add('hidden');
+                const btnSaveDB = document.getElementById('btn-save-db');
+                if (btnSaveDB) btnSaveDB.classList.add('hidden');
+
+                // Ocultar contenedor de botones inferiores si está vacío
+                document.getElementById('config-actions-card').classList.add('hidden');
+
+                // Modificar renderizado de listas para ocultar botones de eliminar
+                applyReadOnlyRender();
+            }
+            // ---- Perfil GESTOR (ex "usuario", acceso completo salvo gestión de usuarios) ----
+            else if (role === 'gestor') {
+                // Ocultar sección 1 de gestión de usuarios
+                document.getElementById('accordion-users').classList.add('hidden');
+            }
+            // ---- Perfil ADMIN (acceso total) ----
+            // Ya todo está visible por la restauración inicial
+        }
+
+        function applyReadOnlyRender() {
+            // Sobrescribir renderHolidayList para ocultar botón X en elementos individuales
+            if (!window.app._originalRenderHolidayList) {
+                window.app._originalRenderHolidayList = renderHolidayList;
+                renderHolidayList = function(type, containerId) {
+                    window.app._originalRenderHolidayList(type, containerId);
+                    // Ocultar iconos X dentro de los chips de fecha
+                    const container = document.getElementById(containerId);
+                    if (container) {
+                        container.querySelectorAll('[data-lucide=\"x\"]').forEach(icon => {
+                            icon.style.display = 'none';
+                        });
+                    }
+                };
+            }
+            // Sobrescribir renderVacationPeriods para ocultar botones editar/eliminar
+            if (!window.app._originalRenderVacationPeriods) {
+                window.app._originalRenderVacationPeriods = renderVacationPeriods;
+                renderVacationPeriods = function() {
+                    window.app._originalRenderVacationPeriods();
+                    const container = document.getElementById('list-vacation-periods');
+                    if (container) {
+                        container.querySelectorAll('span.d-flex.gap-1').forEach(span => {
+                            span.style.display = 'none';
+                        });
+                    }
+                };
+            }
+            // Sobrescribir renderNonTeachingRanges para ocultar botones editar/eliminar
+            if (!window.app._originalRenderNonTeachingRanges) {
+                window.app._originalRenderNonTeachingRanges = renderNonTeachingRanges;
+                renderNonTeachingRanges = function() {
+                    window.app._originalRenderNonTeachingRanges();
+                    const container = document.getElementById('list-non-teaching-ranges');
+                    if (container) {
+                        container.querySelectorAll('span.d-flex.gap-1').forEach(span => {
+                            span.style.display = 'none';
+                        });
+                    }
+                };
+            }
+        }
 
         // ================================================
         // CARGA DE DATOS DESDE FIRESTORE
@@ -2292,7 +2480,8 @@
             document.getElementById('app-loader').style.opacity = '1';
 
             // Mostrar info del usuario
-            const roleText = window.app.currentUser.role === 'admin' ? 'Admin' : 'Usuario';
+            const roleTextMap = { 'admin': 'Admin', 'gestor': 'Gestor', 'user': 'Usuario' };
+            const roleText = roleTextMap[window.app.currentUser.role] || 'Usuario';
             document.getElementById('user-info-badge').textContent = `${roleText}: ${window.app.currentUser.displayName}`;
             document.getElementById('user-info-badge').classList.remove('hidden');
             document.getElementById('btn-logout').classList.remove('hidden');
@@ -2301,6 +2490,9 @@
             if (window.app.currentUser.role === 'admin') {
                 document.getElementById('accordion-users').classList.remove('hidden');
             }
+
+            // Aplicar restricciones de perfil
+            applyRoleUI();
 
             try {
                 // Cargar configuración con listener en tiempo real
@@ -2345,6 +2537,9 @@
                 renderAll();
                 renderCalendar();
                 window.app.renderSummaryTable();
+
+                // Reaplicar restricciones de perfil tras renderizado inicial
+                applyRoleUI();
 
                 // Verificar conflictos
                 const conflicts = findDateConflicts();
@@ -2429,6 +2624,8 @@
                         renderCalendar();
                         window.app.renderSummaryTable();
                         window.app.renderReportTable();
+                        // Reaplicar restricciones de perfil
+                        applyRoleUI();
                     }
                 }, err => {
                     console.error('Error en listener config:', err);
@@ -2447,6 +2644,8 @@
                         renderCalendar();
                         window.app.renderSummaryTable();
                         window.app.renderReportTable();
+                        // Reaplicar restricciones de perfil
+                        applyRoleUI();
 
                         // Si el modal de solicitudes está abierto, refrescarlo
                         // para mostrar los datos actualizados sin duplicados.
@@ -2482,12 +2681,14 @@
 
             userDocs.forEach(doc => {
                 const user = doc.data();
+                const isCurrentUser = window.app.currentUser && window.app.currentUser.username === user.username;
                 const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center bg-light small';
+                li.className = 'list-group-item d-flex justify-content-between align-items-start bg-light small';
                 const roleBadge = user.role === 'admin'
                     ? '<span class="badge bg-danger">Admin</span>'
-                    : '<span class="badge bg-info">Usuario</span>';
-                const isCurrentUser = window.app.currentUser && window.app.currentUser.username === user.username;
+                    : user.role === 'gestor'
+                    ? '<span class="badge bg-info">Gestor</span>'
+                    : '<span class="badge bg-secondary">Usuario</span>';
                 li.innerHTML = `
                     <div class="d-flex align-items-center gap-2">
                         <i data-lucide="user" style="width:14px; color:#2563EB;"></i>
@@ -2498,7 +2699,10 @@
                         ${roleBadge}
                         ${isCurrentUser ? '<span class="badge bg-success">Tú</span>' : ''}
                     </div>
-                    ${!isCurrentUser ? `<button onclick="window.app.deleteUser('${doc.id}')" class="btn btn-link p-0 text-danger" title="Eliminar usuario"><i data-lucide="trash-2" style="width:16px"></i></button>` : ''}
+                    <div class="d-flex align-items-center gap-1">
+                        <button onclick="window.app.openEditUserModal('${doc.id}')" class="btn btn-link p-0 text-primary" title="Editar usuario"><i data-lucide="pencil" style="width:16px"></i></button>
+                        ${!isCurrentUser ? `<button onclick="window.app.deleteUser('${doc.id}')" class="btn btn-link p-0 text-danger" title="Eliminar usuario"><i data-lucide="trash-2" style="width:16px"></i></button>` : ''}
+                    </div>
                 `;
                 listEl.appendChild(li);
             });
@@ -2548,7 +2752,7 @@
                 document.getElementById('new-user-username').value = '';
                 document.getElementById('new-user-displayname').value = '';
                 document.getElementById('new-user-password').value = '';
-                document.getElementById('new-user-role').value = 'user';
+                document.getElementById('new-user-role').value = 'gestor';
 
                 msgEl.textContent = `Usuario "${displayName}" creado correctamente.`;
                 msgEl.className = 'small fw-bold text-success mt-2';
@@ -2569,6 +2773,101 @@
             } catch (e) {
                 console.error('Error eliminando usuario:', e);
                 showNotification('Error al eliminar usuario: ' + e.message, 'error');
+            }
+        };
+
+        window.app.editUser = function(docId, displayName) {
+            // Carga los datos del usuario de Firestore y abre el modal de edición
+            db.collection('users').doc(docId).get().then(doc => {
+                if (!doc.exists) {
+                    showNotification('Usuario no encontrado.', 'error');
+                    return;
+                }
+                const user = doc.data();
+                document.getElementById('edit-user-username').value = user.username;
+                document.getElementById('edit-user-displayname').value = user.displayName;
+                document.getElementById('edit-user-role').value = user.role;
+                document.getElementById('edit-user-password').value = '';
+                document.getElementById('edit-user-password-confirm').value = '';
+                document.getElementById('edit-user-error').classList.add('hidden');
+                window.app._editingUserId = docId;
+                document.getElementById('modal-edit-user').classList.remove('hidden');
+                if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch(e) {} }
+            }).catch(e => {
+                console.error('Error cargando usuario:', e);
+                showNotification('Error al cargar datos del usuario: ' + e.message, 'error');
+            });
+        };
+
+        window.app.openEditUserModal = function(docId) {
+            window.app.editUser(docId);
+        };
+
+        window.app.saveEditedUser = async function() {
+            const docId = window.app._editingUserId;
+            if (!docId) return;
+
+            const username = document.getElementById('edit-user-username').value.trim();
+            const displayName = document.getElementById('edit-user-displayname').value.trim();
+            const role = document.getElementById('edit-user-role').value;
+            const newPass = document.getElementById('edit-user-password').value;
+            const confirmPass = document.getElementById('edit-user-password-confirm').value;
+            const errorEl = document.getElementById('edit-user-error');
+
+            // Validaciones
+            if (!username || !displayName) {
+                errorEl.textContent = 'El nombre de usuario y el nombre a mostrar son obligatorios.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (newPass && newPass.length < 4) {
+                errorEl.textContent = 'La contraseña debe tener al menos 4 caracteres.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (newPass && newPass !== confirmPass) {
+                errorEl.textContent = 'Las contraseñas no coinciden. Por favor, introdúcelas de nuevo.';
+                errorEl.classList.remove('hidden');
+                document.getElementById('edit-user-password').value = '';
+                document.getElementById('edit-user-password-confirm').value = '';
+                document.getElementById('edit-user-password').focus();
+                return;
+            }
+
+            // Verificar que el username no esté en uso por otro usuario
+            try {
+                const existing = await db.collection('users').where('username', '==', username).limit(1).get();
+                if (!existing.empty && existing.docs[0].id !== docId) {
+                    errorEl.textContent = 'Ese nombre de usuario ya está en uso por otro usuario.';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+            } catch (e) {
+                console.error('Error verificando username:', e);
+            }
+
+            try {
+                const updateData = { username, displayName, role };
+                if (newPass) {
+                    updateData.passwordHash = await hashPassword(newPass);
+                }
+                await db.collection('users').doc(docId).update(updateData);
+
+                // Si el usuario editado es el propio usuario actual, actualizar sesión
+                if (window.app.currentUser && window.app.currentUser.username === username) {
+                    window.app.currentUser.displayName = displayName;
+                    window.app.currentUser.role = role;
+                    sessionStorage.setItem('app_user', JSON.stringify(window.app.currentUser));
+                    document.getElementById('user-info-badge').textContent = `${role === 'admin' ? 'Admin' : role === 'gestor' ? 'Gestor' : 'Usuario'}: ${displayName}`;
+                    applyRoleUI();
+                }
+
+                window.app.closeModal('modal-edit-user');
+                showNotification(`Usuario "${displayName}" actualizado correctamente.`);
+            } catch (e) {
+                console.error('Error guardando usuario:', e);
+                errorEl.textContent = 'Error al guardar: ' + e.message;
+                errorEl.classList.remove('hidden');
             }
         };
 
@@ -2702,6 +3001,11 @@
         // TABS Y NAVEGACIÓN
         // ================================================
         window.app.switchTab = (tab) => {
+            // Perfil usuario: no puede ver Informes
+            if (window.app.currentUser && window.app.currentUser.role === 'user' && tab === 'stats') {
+                showNotification('No tienes acceso a esta sección', 'error');
+                return;
+            }
             ['config', 'calendar', 'stats', 'normativa'].forEach(t => {
                 document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
                 const btn = document.getElementById('tab-' + t);
@@ -3296,6 +3600,11 @@
         // ── Wrapper seguro para clics en celdas del calendario ──
         window.app._safeCellClick = function(ds) {
             try {
+                // Perfil usuario: mostrar modal simplificado sin nombres
+                if (isUsuarioRole()) {
+                    window.app.openUsuarioDaySummary(ds);
+                    return;
+                }
                 var modal = document.getElementById('modal-request');
                 if (!modal) { console.error('[safeCellClick] modal no encontrado'); return; }
                 modal.classList.add('hidden');
@@ -3307,6 +3616,53 @@
                 console.error('[safeCellClick] Error:', err);
                 try { renderCalendar(); } catch(e2) {}
             }
+        };
+
+        // ================================================
+        // MODAL SIMPLIFICADO PARA PERFIL USUARIO
+        // Muestra conteos de permisos SIN nombres de solicitantes
+        // ================================================
+        window.app.openUsuarioDaySummary = (ds) => {
+            window.app.selectedDate = ds;
+            const reqs = window.app.requests.filter(r => r.date === ds);
+
+            const counts = { paid_teaching: 0, paid_non_teaching: 0, unpaid: 0 };
+            reqs.forEach(r => {
+                if (counts[r.type] !== undefined) counts[r.type]++;
+            });
+            const total = reqs.length;
+
+            document.getElementById('modal-usuario-day-title').innerText = 'Permisos del día';
+
+            const content = document.getElementById('usuario-day-summary-content');
+            if (total === 0) {
+                content.innerHTML = '<p class="text-secondary small fst-italic text-center mb-0">No hay permisos solicitados.</p>';
+            } else {
+                let html = '<div class="vstack gap-2">';
+                if (counts.paid_teaching > 0) {
+                    html += `<div class="d-flex align-items-center gap-2 p-2 rounded" style="background-color:#dbeafe; border:1px solid #93c5fd;">
+                        <span class="badge rounded-pill text-white" style="background-color:#2563EB;">${counts.paid_teaching}</span>
+                        <span class="small fw-bold" style="color:#1e40af;">Retribuido${counts.paid_teaching > 1 ? 's' : ''} Lectivo${counts.paid_teaching > 1 ? 's' : ''}</span>
+                    </div>`;
+                }
+                if (counts.paid_non_teaching > 0) {
+                    html += `<div class="d-flex align-items-center gap-2 p-2 rounded" style="background-color:#fef3c7; border:1px solid #fcd34d;">
+                        <span class="badge rounded-pill text-dark" style="background-color:#d97706;">${counts.paid_non_teaching}</span>
+                        <span class="small fw-bold" style="color:#92400e;">Retribuido${counts.paid_non_teaching > 1 ? 's' : ''} No Lectivo${counts.paid_non_teaching > 1 ? 's' : ''}</span>
+                    </div>`;
+                }
+                if (counts.unpaid > 0) {
+                    html += `<div class="d-flex align-items-center gap-2 p-2 rounded" style="background-color:#e5e7eb; border:1px solid #9ca3af;">
+                        <span class="badge rounded-pill text-white" style="background-color:#4b5563;">${counts.unpaid}</span>
+                        <span class="small fw-bold" style="color:#1f2937;">No Retribuido${counts.unpaid > 1 ? 's' : ''}</span>
+                    </div>`;
+                }
+                html += '</div>';
+                content.innerHTML = html;
+            }
+
+            document.getElementById('modal-usuario-day-summary').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch(e) {} }
         };
 
         window.app.openRequestModal = (ds) => {
@@ -3912,7 +4268,7 @@
                 if (reqs.length > 0) cellClass += ' cell-active';
 
                 const tooltip = buildTooltip(dateStr, isWeekend, isHoliday, isNTNotified, isFreeDisp, isVacation, isUnavail, isNonTeach, reqs);
-                const canClick = !isWeekend && !isHoliday && !isNTNotified && !isFreeDisp && !isVacation && !isUnavail && !isNonTeach;
+                const canClick = !isWeekend && !isHoliday && !isNTNotified && !isFreeDisp && !isVacation && !isUnavail && (!isNonTeach || reqs.length > 0);
                 const onclickAttr = canClick ? ` onclick="window.app._safeCellClick('${dateStr}')"` : '';
 
                 html += `<div class="${cellClass}" data-date="${dateStr}"${onclickAttr} ${tooltip}>`;
@@ -3955,9 +4311,15 @@
             }
 
             reqs.forEach(r => {
-                const name = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
-                const lbl = { 'paid_teaching': 'Retr.Lect.', 'paid_non_teaching': 'Retr.NO Lect.', 'unpaid': 'No Retr.' }[r.type] || r.type;
-                parts.push(`${name}: ${lbl}`);
+                // Perfil usuario: no mostrar nombres de solicitantes en tooltip
+                if (isUsuarioRole()) {
+                    const lbl = { 'paid_teaching': 'Retr.Lect.', 'paid_non_teaching': 'Retr.NO Lect.', 'unpaid': 'No Retr.' }[r.type] || r.type;
+                    parts.push(lbl);
+                } else {
+                    const name = window.app.config.teachers.find(t => t.id === r.teacherId)?.name || '??';
+                    const lbl = { 'paid_teaching': 'Retr.Lect.', 'paid_non_teaching': 'Retr.NO Lect.', 'unpaid': 'No Retr.' }[r.type] || r.type;
+                    parts.push(`${name}: ${lbl}`);
+                }
             });
 
             return `data-tooltip="${parts.join('\\n')}" onmouseenter="showTooltip(event)" onmouseleave="hideTooltip()"`;
