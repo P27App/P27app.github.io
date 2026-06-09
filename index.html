@@ -4267,7 +4267,7 @@
                 const reqs = window.app.requests.filter(r => r.date === dateStr);
                 if (reqs.length > 0) cellClass += ' cell-active';
 
-                const tooltip = buildTooltip(dateStr, isWeekend, isHoliday, isNTNotified, isFreeDisp, isVacation, isUnavail, isNonTeach, reqs);
+                const tooltip = isUsuarioRole() ? '' : buildTooltip(dateStr, isWeekend, isHoliday, isNTNotified, isFreeDisp, isVacation, isUnavail, isNonTeach, reqs);
                 const canClick = !isWeekend && !isHoliday && !isNTNotified && !isFreeDisp && !isVacation && !isUnavail && (!isNonTeach || reqs.length > 0);
                 const onclickAttr = canClick ? ` onclick="window.app._safeCellClick('${dateStr}')"` : '';
 
