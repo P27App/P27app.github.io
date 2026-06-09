@@ -168,102 +168,6 @@
             border-color: #bbf7d0;
         }
         
-        /* Estilos para la lista de gists */
-        .gist-item {
-            border-left: 4px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .gist-item:hover {
-            background-color: #f8f9fa;
-            border-left-color: #2563EB;
-        }
-        
-        .delete-gist-btn {
-            opacity: 0.5;
-            transition: all 0.2s;
-        }
-        
-        .delete-gist-btn:hover {
-            opacity: 1;
-            color: #dc3545 !important;
-        }
-        
-        /* Estilo para indicador de eliminando */
-        .deleting {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        /* Estilos para el indicador de última actualización */
-        .last-update-indicator {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            z-index: 1000;
-            backdrop-filter: blur(4px);
-            animation: fadeInUp 0.5s ease-out;
-            max-width: 300px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .last-update-indicator.fade-out {
-            animation: fadeOutDown 0.5s ease-out forwards;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeOutDown {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-        }
-        
-        /* Estilos para bloqueo de interfaz */
-        #interface-blocker {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(4px);
-            z-index: 9998;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            display: none;
-        }
-        
-        #loading-message {
-            margin-top: 20px;
-            font-size: 1.2rem;
-            color: #2563EB;
-            font-weight: bold;
-            text-align: center;
-            max-width: 80%;
-        }
-
         /* Estilos para impresión del calendario en A3 (orientación dinámica) */
         @media print {
             /* @page se gestiona dinámicamente en #print-page-style */
@@ -645,9 +549,6 @@
             .print-panel { padding: 0.4rem 0.5rem; }
             .print-month-chip { font-size: 0.65rem; padding: 0.15rem 0.35rem; }
 
-            /* Botón de ayuda oculto en móvil */
-            header button.btn-outline-light { display: none !important; }
-
             /* Notificaciones */
             #notification-area { padding: 0.5rem !important; }
             #notification-msg { font-size: 0.8rem; }
@@ -815,15 +716,13 @@
             <div class="d-flex align-items-center gap-3">
                 <h1 class="h4 fw-bold mb-0 d-flex align-items-center gap-2">
                     <i data-lucide="calendar"></i> Gestión de Asuntos Propios
-                </h1>
-                <!-- Botón de Ayuda -->
-                <button onclick="window.app.openHelpModal()" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1">
-                    <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
-                    <span class="d-none d-md-inline">¿Cómo funciona?</span>
-                </button>
             </div>
             <div id="auth-status" class="d-flex align-items-center gap-2">
                 <span id="user-info-badge" class="badge bg-success font-monospace px-3 py-2 fw-normal hidden"></span>
+                <a id="btn-manual-download" href="#" target="_blank" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 hidden" title="Descargar manual">
+                    <i data-lucide="book-open" style="width: 16px; height: 16px;"></i>
+                    <span class="d-none d-md-inline">Manual</span>
+                </a>
                 <button onclick="window.app.logout()" id="btn-logout" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 hidden" title="Cerrar sesión">
                     <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
                     <span class="d-none d-md-inline">Salir</span>
@@ -920,10 +819,36 @@
                         <div class="accordion-body">
                             <div class="card bg-white mb-0">
                                 <div class="card-body p-3">
-                                    <div class="d-flex align-items-center gap-3 flex-wrap mt-1">
-                                        <label class="fw-medium">Año de inicio (Septiembre):</label>
-                                        <input type="number" id="input-start-year" class="form-control w-auto" style="width: 120px;" onchange="window.app.updateConfig('year')">
-                                        <span class="text-secondary" id="text-end-year">→ Finaliza en Junio de ...</span>
+                                    <!-- Curso activo (solo lectura para no-admin) -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-primary text-uppercase mb-2">Curso activo</label>
+                                        <div id="course-select-wrapper">
+                                            <select id="select-active-course" class="form-select form-select-sm" onchange="window.app.switchActiveCourse(this.value)">
+                                            </select>
+                                            <small class="text-muted mt-1 d-block">1 de septiembre de un año al 31 de agosto del siguiente.</small>
+                                        </div>
+                                        <div id="course-active-readonly" class="hidden">
+                                            <div class="d-flex align-items-center gap-2 p-2 bg-light rounded border">
+                                                <i data-lucide="calendar-check" style="width:20px; color:#2563EB; flex-shrink:0;"></i>
+                                                <div>
+                                                    <div id="course-active-label" class="fw-bold" style="font-size:1rem; line-height:1.3;"></div>
+                                                    <div id="course-active-range" class="text-muted" style="font-size:0.78rem; line-height:1.3;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="my-2">
+                                    <!-- Lista de cursos -->
+                                    <div id="courses-list-wrapper">
+                                        <label class="form-label fw-bold small text-primary text-uppercase mb-2">Todos los cursos</label>
+                                        <ul id="list-courses" class="list-group list-group-flush border-top mb-3" style="max-height:200px; overflow-y:auto;"></ul>
+                                    </div>
+                                    <!-- Añadir nuevo curso -->
+                                    <div id="course-add-wrapper" class="d-flex gap-2 align-items-center">
+                                        <input type="number" id="input-new-course-year" class="form-control form-control-sm" placeholder="Año de inicio (ej: 2027)" style="max-width:180px;" min="2000" max="2100">
+                                        <button onclick="window.app.addCourse()" class="btn bg-green-600 text-white btn-sm d-flex align-items-center gap-1">
+                                            <i data-lucide="plus" style="width:14px"></i> Añadir curso
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1383,7 +1308,7 @@
                                                 <tr>
                                                     <th class="p-3">Profesor</th>
                                                     <th class="p-3 text-center">Retribuidos Lectivos</th>
-                                                    <th class="p-3 text-center">Retribuidos NO Lectivos (Máx. 4)</th>
+                                                    <th class="p-3 text-center">Retribuidos NO Lectivos (4-6 según lectivos)</th>
                                                     <th class="p-3 text-center">No Retribuidos (∞)</th>
                                                     <th class="p-3 text-center">Estado</th>
                                                 </tr>
@@ -1532,7 +1457,7 @@
         <div class="bg-white p-4 rounded shadow w-100" style="max-width: 320px;">
             <h3 class="h5 fw-bold mb-3" id="modal-holiday-title">Añadir fecha</h3>
             <div id="date-conflict-warning" class="alert alert-warning p-2 mb-3 small hidden">
-                <i data-lucide="alert-triangle" style="width:16px"></i> <span id="conflict-message"></span>
+                <i data-lucide="alert-triangle" style="width:16px"></i> <span class="small"></span>
             </div>
             <label class="form-label small text-secondary" id="label-start-date">Fecha:</label>
             <input type="date" id="input-holiday-date" class="form-control mb-3">
@@ -1579,7 +1504,7 @@
                             </div>
                             <div id="opt-paid-non-teaching" class="form-check mb-2">
                                 <input class="form-check-input" type="radio" name="reqType" id="rt2" value="paid_non_teaching">
-                                <label class="form-check-label small" for="rt2">Retribuido NO LECTIVO (Max 4)</label>
+                                <label class="form-check-label small" for="rt2">Retribuido NO LECTIVO</label>
                             </div>
                             <div id="opt-unpaid" class="mt-3 pt-2 border-top">
                                 <div class="form-check">
@@ -1720,7 +1645,7 @@
                     <h5 class="fw-bold text-blue-800 mb-2">📊 Tipos de permisos disponibles</h5>
                     <ul class="ps-3 small mb-0">
                         <li class="mb-1"><strong>Retribuidos Lectivos:</strong> Máximo configurable por profesor (por defecto 2, editable en la configuración del profesorado). Solo en días lectivos.</li>
-                        <li class="mb-1"><strong>Retribuidos No Lectivos:</strong> Máximo 4 por profesor (solo en días no lectivos)</li>
+                        <li class="mb-1"><strong>Retribuidos No Lectivos:</strong> Máximo 6 por profesor si no usa lectivos; mínimo 4 si usa los 2 lectivos. El total retribuido (lectivos + no lectivos) no puede superar 6. Solo en días no lectivos.</li>
                         <li class="mb-1"><strong>No Retribuidos:</strong> Sin límite (cualquier día hábil)</li>
                     </ul>
                 </div>
@@ -2009,22 +1934,6 @@
             }
         }
     });
-    
-    // ================================================
-    // FORZAR ACTUALIZACIÓN MANUAL (para debugging)
-    // ================================================
-    
-    window.forceUpdate = function() {
-        if (registrationInstance) {
-            console.log('🔄 Forzando actualización manual...');
-            registrationInstance.update().then(() => {
-                if (newServiceWorker) {
-                    newServiceWorker.postMessage({ type: 'SKIP_WAITING' });
-                    setTimeout(() => window.location.reload(true), 500);
-                }
-            });
-        }
-    };
 </script>
 
     <script>
@@ -2346,6 +2255,7 @@
                     // Ocultar elementos de sesión activa
                     document.getElementById('user-info-badge').classList.add('hidden');
                     document.getElementById('btn-logout').classList.add('hidden');
+                    document.getElementById('btn-manual-download').classList.add('hidden');
                     document.getElementById('accordion-users').classList.add('hidden');
 
                     // Resetear botón de login a estado por defecto
@@ -2392,6 +2302,16 @@
             if (btnSaveDB) btnSaveDB.classList.remove('hidden');
             document.getElementById('config-actions-card').classList.remove('hidden');
 
+            // Restaurar wrappers de gestión de cursos
+            const courseSelectWrapper = document.getElementById('course-select-wrapper');
+            if (courseSelectWrapper) courseSelectWrapper.classList.remove('hidden');
+            const courseAddWrapper = document.getElementById('course-add-wrapper');
+            if (courseAddWrapper) courseAddWrapper.classList.remove('hidden');
+            const coursesListWrapper = document.getElementById('courses-list-wrapper');
+            if (coursesListWrapper) coursesListWrapper.classList.remove('hidden');
+            const courseReadOnly = document.getElementById('course-active-readonly');
+            if (courseReadOnly) courseReadOnly.classList.add('hidden');
+
             // ---- Perfil USUARIO (nuevo, con restricciones) ----
             if (role === 'user') {
                 // Ocultar secciones 1, 2, 3, 10 de configuración
@@ -2419,10 +2339,23 @@
                 // Modificar renderizado de listas para ocultar botones de eliminar
                 applyReadOnlyRender();
             }
-            // ---- Perfil GESTOR (ex "usuario", acceso completo salvo gestión de usuarios) ----
+            // ---- Perfil GESTOR (acceso completo salvo gestión de usuarios y cursos) ----
             else if (role === 'gestor') {
                 // Ocultar sección 1 de gestión de usuarios
                 document.getElementById('accordion-users').classList.add('hidden');
+
+                // Ocultar gestión de cursos (select, añadir, eliminar, lista completa)
+                const courseSelectWrapper = document.getElementById('course-select-wrapper');
+                if (courseSelectWrapper) courseSelectWrapper.classList.add('hidden');
+                const courseAddWrapper = document.getElementById('course-add-wrapper');
+                if (courseAddWrapper) courseAddWrapper.classList.add('hidden');
+                const coursesListWrapper = document.getElementById('courses-list-wrapper');
+                if (coursesListWrapper) coursesListWrapper.classList.add('hidden');
+
+                // Mostrar solo lectura del curso activo
+                const courseReadOnly = document.getElementById('course-active-readonly');
+                if (courseReadOnly) courseReadOnly.classList.remove('hidden');
+                updateCourseReadOnlyDisplay();
             }
             // ---- Perfil ADMIN (acceso total) ----
             // Ya todo está visible por la restauración inicial
@@ -2486,6 +2419,16 @@
             document.getElementById('user-info-badge').classList.remove('hidden');
             document.getElementById('btn-logout').classList.remove('hidden');
 
+            // Mostrar botón de descarga del manual según el rol
+            const manualUrls = {
+                'admin': 'Manual_Admin.pdf',
+                'gestor': 'Manual_Gestor.pdf',
+                'user': 'Manual_Usuario.pdf'
+            };
+            const btnManual = document.getElementById('btn-manual-download');
+            btnManual.href = manualUrls[window.app.currentUser.role] || manualUrls['user'];
+            btnManual.classList.remove('hidden');
+
             // Mostrar sección de usuarios si es admin
             if (window.app.currentUser.role === 'admin') {
                 document.getElementById('accordion-users').classList.remove('hidden');
@@ -2495,21 +2438,97 @@
             applyRoleUI();
 
             try {
-                // Cargar configuración con listener en tiempo real
+                // Cargar configuración principal
                 const configDoc = await db.collection('schoolConfig').doc('main').get();
                 if (configDoc.exists) {
                     const data = configDoc.data();
+                    // Auto-detectar el curso actual según la fecha del sistema
+                    const currentStartYear = getCurrentStartYear();
+                    const storedStartYear = data.startYear || currentStartYear;
+
+                    // Migración: si el doc 'main' tiene teachers/holidays (estructura antigua),
+                    // moverlos a 'course_YEAR' y crear la lista de cursos
+                    if (data.teachers && !data.courses) {
+                        // Estructura antigua: migrar datos a course_YEAR
+                        await db.collection('schoolConfig').doc('course_' + currentStartYear).set({
+                            startYear: currentStartYear,
+                            teachers: data.teachers || [],
+                            holidays: data.holidays || [...(data.localHolidays || []), ...(data.provHolidays || [])],
+                            nonTeachingNotifiedDays: data.nonTeachingNotifiedDays || [],
+                            freeDispositionDays: data.freeDispositionDays || [],
+                            vacationPeriods: (data.vacationPeriods || []).map(p => ({ ...p, label: p.label || '' })),
+                            unavailableDays: data.unavailableDays || [],
+                            nonTeachingDays: data.nonTeachingDays || [],
+                            nonTeachingRanges: data.nonTeachingRanges || [],
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        // Actualizar main para que solo tenga metadatos
+                        await db.collection('schoolConfig').doc('main').set({
+                            startYear: currentStartYear,
+                            courses: [{ startYear: currentStartYear }],
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    // Auto-detectar curso activo: para no-admin siempre el curso actual del sistema;
+                    // para admin, el curso actual del sistema si existe en la lista, sino el almacenado.
+                    const courses = data.courses || [{ startYear: currentStartYear }];
+                    const isAdmin = window.app.currentUser && window.app.currentUser.role === 'admin';
+                    let activeYear;
+                    if (isAdmin) {
+                        // Admin: usar el curso actual del sistema si está en la lista de cursos
+                        if (courses.find(c => c.startYear === currentStartYear)) {
+                            activeYear = currentStartYear;
+                        } else {
+                            activeYear = storedStartYear;
+                        }
+                    } else {
+                        // No-admin: siempre el curso actual del sistema
+                        activeYear = currentStartYear;
+                    }
+
+                    // Si el curso activo no está en la lista, añadirlo
+                    if (!courses.find(c => c.startYear === activeYear)) {
+                        courses.push({ startYear: activeYear });
+                    }
+
                     window.app.config = {
-                        startYear: data.startYear || new Date().getFullYear(),
-                        teachers: data.teachers || [],
-                        holidays: data.holidays || [...(data.localHolidays || []), ...(data.provHolidays || [])],
-                        nonTeachingNotifiedDays: data.nonTeachingNotifiedDays || [],
-                        freeDispositionDays: data.freeDispositionDays || [],
-                        vacationPeriods: (data.vacationPeriods || []).map(p => ({ ...p, label: p.label || '' })),
-                        unavailableDays: data.unavailableDays || [],
-                        nonTeachingDays: data.nonTeachingDays || [],
-                        nonTeachingRanges: data.nonTeachingRanges || []
+                        startYear: activeYear,
+                        courses: courses,
+                        teachers: [],
+                        holidays: [],
+                        nonTeachingNotifiedDays: [],
+                        freeDispositionDays: [],
+                        vacationPeriods: [],
+                        unavailableDays: [],
+                        nonTeachingDays: [],
+                        nonTeachingRanges: []
                     };
+
+                    // Si el año activo cambió (auto-detect), actualizar Firestore
+                    // Solo admin puede persistir el cambio de año; non-admin solo aplica localmente
+                    if (activeYear !== storedStartYear && isAdmin) {
+                        await db.collection('schoolConfig').doc('main').set({
+                            startYear: activeYear,
+                            courses: courses,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                    }
+
+                    // Cargar datos del curso activo
+                    const courseDoc = await db.collection('schoolConfig').doc('course_' + activeYear).get();
+                    if (courseDoc.exists) {
+                        const cdata = courseDoc.data();
+                        window.app.config.teachers = cdata.teachers || [];
+                        window.app.config.holidays = cdata.holidays || [];
+                        window.app.config.nonTeachingNotifiedDays = cdata.nonTeachingNotifiedDays || [];
+                        window.app.config.freeDispositionDays = cdata.freeDispositionDays || [];
+                        window.app.config.vacationPeriods = (cdata.vacationPeriods || []).map(p => ({ ...p, label: p.label || '' }));
+                        window.app.config.unavailableDays = cdata.unavailableDays || [];
+                        window.app.config.nonTeachingDays = cdata.nonTeachingDays || [];
+                        window.app.config.nonTeachingRanges = cdata.nonTeachingRanges || [];
+                    }
+
                     // Migración: si existen nonTeachingDays pero no nonTeachingRanges, crear rangos individuales
                     if (window.app.config.nonTeachingRanges.length === 0 && window.app.config.nonTeachingDays.length > 0) {
                         window.app.config.nonTeachingRanges = window.app.config.nonTeachingDays.map(d => ({ start: d, end: d, label: '' }));
@@ -2521,14 +2540,18 @@
                     window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
                 }
 
-                // Cargar solicitudes
+                // Cargar solicitudes del curso activo
                 const reqSnapshot = await db.collection('requests').get();
-                window.app.requests = reqSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    date: doc.data().date,
-                    teacherId: doc.data().teacherId,
-                    type: doc.data().type
-                }));
+                window.app.requests = reqSnapshot.docs.map(doc => {
+                    const d = doc.data();
+                    return {
+                        id: doc.id,
+                        date: d.date,
+                        teacherId: d.teacherId,
+                        type: d.type,
+                        courseYear: d.courseYear || window.app.config.startYear
+                    };
+                }).filter(r => !r.courseYear || r.courseYear === window.app.config.startYear);
 
                 // Configurar listeners en tiempo real
                 setupFirestoreListeners();
@@ -2572,6 +2595,7 @@
                     // Ocultar elementos de sesión activa
                     document.getElementById('user-info-badge').classList.add('hidden');
                     document.getElementById('btn-logout').classList.add('hidden');
+                    document.getElementById('btn-manual-download').classList.add('hidden');
                     document.getElementById('accordion-users').classList.add('hidden');
 
                     // Mostrar login con error descriptivo
@@ -2596,42 +2620,67 @@
         // LISTENERS EN TIEMPO REAL DE FIRESTORE
         // ================================================
         function setupFirestoreListeners() {
-            // Listener para configuración
+            // Listener para configuración principal (metadatos: cursos, startYear activo)
             window.app.configUnsubscribe = db.collection('schoolConfig').doc('main')
-                .onSnapshot(doc => {
+                .onSnapshot(async doc => {
                     if (doc.exists && window.app.currentUser) {
                         const data = doc.data();
-                        window.app.config = {
-                            startYear: data.startYear || new Date().getFullYear(),
-                            teachers: data.teachers || [],
-                            holidays: data.holidays || [...(data.localHolidays || []), ...(data.provHolidays || [])],
-                            nonTeachingNotifiedDays: data.nonTeachingNotifiedDays || [],
-                            freeDispositionDays: data.freeDispositionDays || [],
-                            vacationPeriods: (data.vacationPeriods || []).map(p => ({ ...p, label: p.label || '' })),
-                            unavailableDays: data.unavailableDays || [],
-                            nonTeachingDays: data.nonTeachingDays || [],
-                            nonTeachingRanges: data.nonTeachingRanges || []
-                        };
-                        // Migración: si existen nonTeachingDays pero no nonTeachingRanges, crear rangos individuales
-                        if (window.app.config.nonTeachingRanges.length === 0 && window.app.config.nonTeachingDays.length > 0) {
-                            window.app.config.nonTeachingRanges = window.app.config.nonTeachingDays.map(d => ({ start: d, end: d, label: '' }));
+                        const remoteStartYear = data.startYear || new Date().getFullYear();
+                        const newCourses = data.courses || [];
+
+                        // Auto-detectar curso actual según fecha del sistema para no-admin
+                        const currentStartYear = getCurrentStartYear();
+                        const isAdmin = window.app.currentUser.role === 'admin';
+                        const effectiveStartYear = isAdmin ? remoteStartYear : currentStartYear;
+
+                        // Si cambió el startYear o la lista de cursos, recargar
+                        if (effectiveStartYear !== window.app.config.startYear || JSON.stringify(newCourses) !== JSON.stringify(window.app.config.courses || [])) {
+                            window.app.config.startYear = effectiveStartYear;
+                            window.app.config.courses = newCourses;
+
+                            // Recargar datos del curso
+                            try {
+                                const courseDoc = await db.collection('schoolConfig').doc('course_' + effectiveStartYear).get();
+                                if (courseDoc.exists) {
+                                    const cdata = courseDoc.data();
+                                    window.app.config.teachers = cdata.teachers || [];
+                                    window.app.config.holidays = cdata.holidays || [];
+                                    window.app.config.nonTeachingNotifiedDays = cdata.nonTeachingNotifiedDays || [];
+                                    window.app.config.freeDispositionDays = cdata.freeDispositionDays || [];
+                                    window.app.config.vacationPeriods = (cdata.vacationPeriods || []).map(p => ({ ...p, label: p.label || '' }));
+                                    window.app.config.unavailableDays = cdata.unavailableDays || [];
+                                    window.app.config.nonTeachingDays = cdata.nonTeachingDays || [];
+                                    window.app.config.nonTeachingRanges = cdata.nonTeachingRanges || [];
+                                }
+                                window.app.config.teachers.forEach(t => {
+                                    if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2;
+                                });
+                                window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
+
+                                // Recargar solicitudes del curso
+                                const reqSnapshot = await db.collection('requests')
+                                    .where('courseYear', '==', effectiveStartYear).get();
+                                window.app.requests = reqSnapshot.docs.map(rd => ({
+                                    id: rd.id, date: rd.data().date, teacherId: rd.data().teacherId, type: rd.data().type
+                                }));
+                            } catch(e) { console.error('Error recargando curso:', e); }
+
+                            renderAll();
+                            renderCalendar();
+                            window.app.renderSummaryTable();
+                            window.app.renderReportTable();
+                            applyRoleUI();
+                        } else {
+                            // Solo refrescar lista de cursos (por si se añadió/eliminó uno)
+                            window.app.config.courses = newCourses;
+                            renderCoursesList();
                         }
-                        window.app.config.teachers.forEach(t => {
-                            if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2;
-                        });
-                        window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
-                        renderAll();
-                        renderCalendar();
-                        window.app.renderSummaryTable();
-                        window.app.renderReportTable();
-                        // Reaplicar restricciones de perfil
-                        applyRoleUI();
                     }
                 }, err => {
                     console.error('Error en listener config:', err);
                 });
 
-            // Listener para solicitudes
+            // Listener para solicitudes (filtrar por curso activo)
             window.app.requestsUnsubscribe = db.collection('requests')
                 .onSnapshot(snapshot => {
                     if (window.app.currentUser) {
@@ -2639,8 +2688,9 @@
                             id: doc.id,
                             date: doc.data().date,
                             teacherId: doc.data().teacherId,
-                            type: doc.data().type
-                        }));
+                            type: doc.data().type,
+                            courseYear: doc.data().courseYear || null
+                        })).filter(r => !r.courseYear || r.courseYear === window.app.config.startYear);
                         renderCalendar();
                         window.app.renderSummaryTable();
                         window.app.renderReportTable();
@@ -2648,7 +2698,6 @@
                         applyRoleUI();
 
                         // Si el modal de solicitudes está abierto, refrescarlo
-                        // para mostrar los datos actualizados sin duplicados.
                         const modalEl = document.getElementById('modal-request');
                         if (modalEl && !modalEl.classList.contains('hidden') && window.app.selectedDate) {
                             window.app.openRequestModal(window.app.selectedDate);
@@ -2700,7 +2749,7 @@
                         ${isCurrentUser ? '<span class="badge bg-success">Tú</span>' : ''}
                     </div>
                     <div class="d-flex align-items-center gap-1">
-                        <button onclick="window.app.openEditUserModal('${doc.id}')" class="btn btn-link p-0 text-primary" title="Editar usuario"><i data-lucide="pencil" style="width:16px"></i></button>
+                        <button onclick="window.app.editUser('${doc.id}')" class="btn btn-link p-0 text-primary" title="Editar usuario"><i data-lucide="pencil" style="width:16px"></i></button>
                         ${!isCurrentUser ? `<button onclick="window.app.deleteUser('${doc.id}')" class="btn btn-link p-0 text-danger" title="Eliminar usuario"><i data-lucide="trash-2" style="width:16px"></i></button>` : ''}
                     </div>
                 `;
@@ -2799,10 +2848,6 @@
             });
         };
 
-        window.app.openEditUserModal = function(docId) {
-            window.app.editUser(docId);
-        };
-
         window.app.saveEditedUser = async function() {
             const docId = window.app._editingUserId;
             if (!docId) return;
@@ -2878,19 +2923,8 @@
             try {
                 showNotification('Guardando en base de datos...', 'info');
 
-                // Guardar configuración
-                await db.collection('schoolConfig').doc('main').set({
-                    startYear: window.app.config.startYear,
-                    teachers: window.app.config.teachers,
-                    holidays: window.app.config.holidays || [],
-                    nonTeachingNotifiedDays: window.app.config.nonTeachingNotifiedDays || [],
-                    freeDispositionDays: window.app.config.freeDispositionDays || [],
-                    vacationPeriods: window.app.config.vacationPeriods || [],
-                    unavailableDays: window.app.config.unavailableDays || [],
-                    nonTeachingDays: window.app.config.nonTeachingDays || [],
-                    nonTeachingRanges: window.app.config.nonTeachingRanges || [],
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                // Guardar config principal (metadatos) y datos del curso activo
+                await saveConfigToFirestore();
 
                 showNotification('Datos guardados en Firebase correctamente');
             } catch (e) {
@@ -2902,7 +2936,20 @@
         // Función auxiliar para guardar config después de cambios
         async function saveConfigToFirestore() {
             try {
+                // Migración: inicializar cursos si no existen
+                if (!window.app.config.courses || window.app.config.courses.length === 0) {
+                    window.app.config.courses = [{ startYear: window.app.config.startYear }];
+                }
+
+                // Guardar config principal (metadatos: startYear activo, lista de cursos)
                 await db.collection('schoolConfig').doc('main').set({
+                    startYear: window.app.config.startYear,
+                    courses: window.app.config.courses,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                // Guardar datos específicos del curso activo
+                await db.collection('schoolConfig').doc('course_' + window.app.config.startYear).set({
                     startYear: window.app.config.startYear,
                     teachers: window.app.config.teachers,
                     holidays: window.app.config.holidays || [],
@@ -3027,10 +3074,346 @@
         // ================================================
         // CONFIGURACIÓN DEL CURSO
         // ================================================
-        window.app.updateConfig = async (key) => {
-            window.app.config.startYear = parseInt(document.getElementById('input-start-year').value) || new Date().getFullYear();
-            document.getElementById('text-end-year').innerText = `→ Finaliza en Junio de ${window.app.config.startYear + 1}`;
-            await saveConfigToFirestore();
+
+        // ---- Helpers para cursos ----
+        function getCurrentStartYear() {
+            const now = new Date();
+            return now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1; // Sept+ = año actual, sino anterior
+        }
+
+        function isCurrentCourse(startYear) {
+            return startYear === getCurrentStartYear();
+        }
+
+        function courseLabel(startYear) {
+            return `${startYear}-${startYear + 1}`;
+        }
+
+        function courseDateRange(startYear) {
+            return `01/09/${startYear} → 31/08/${startYear + 1}`;
+        }
+
+        // Actualizar la pantalla de solo lectura del curso activo (para gestor)
+        function updateCourseReadOnlyDisplay() {
+            const labelEl = document.getElementById('course-active-label');
+            const rangeEl = document.getElementById('course-active-range');
+            if (labelEl && rangeEl && window.app.config) {
+                const sy = window.app.config.startYear;
+                labelEl.textContent = courseLabel(sy);
+                rangeEl.textContent = courseDateRange(sy);
+            }
+        }
+
+        // ---- Gestión de múltiples cursos ----
+
+        function renderCoursesList() {
+            const courses = window.app.config.courses || [];
+            const listEl = document.getElementById('list-courses');
+            const selectEl = document.getElementById('select-active-course');
+            if (!listEl) return;
+
+            const isAdmin = window.app.currentUser && window.app.currentUser.role === 'admin';
+
+            // Ordenar cursos por startYear descendente
+            const sorted = [...courses].sort((a, b) => b.startYear - a.startYear);
+
+            // Renderizar lista
+            listEl.innerHTML = '';
+            if (sorted.length === 0) {
+                listEl.innerHTML = '<li class="list-group-item small text-muted text-center fst-italic">No hay cursos configurados</li>';
+            } else {
+                sorted.forEach(c => {
+                    const label = courseLabel(c.startYear);
+                    const isActive = window.app.config.startYear === c.startYear;
+                    const isCurrent = isCurrentCourse(c.startYear);
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center bg-light small';
+                    let badges = '';
+                    if (isActive) badges += '<span class="badge bg-primary">Activo</span>';
+                    if (isCurrent) badges += '<span class="badge bg-success">Curso actual</span>';
+                    // Solo admin puede ver el botón de eliminar
+                    let actionHtml = '';
+                    if (isAdmin && !isCurrent) {
+                        actionHtml = `<button onclick="window.app.deleteCourse(${c.startYear})" class="btn btn-link p-0 text-danger" title="Eliminar curso (se exportará JSON automáticamente)"><i data-lucide="trash-2" style="width:16px"></i></button>`;
+                    } else if (isCurrent) {
+                        actionHtml = '<span class="text-muted" style="font-size:0.7rem;" title="No se puede eliminar el curso actual"><i data-lucide="lock" style="width:14px;"></i></span>';
+                    }
+                    li.innerHTML = `
+                        <div class="d-flex align-items-center gap-2">
+                            <i data-lucide="calendar-range" style="width:14px; color:#2563EB;"></i>
+                            <div>
+                                <span class="fw-bold">${label}</span>
+                                <span class="text-muted" style="font-size:0.65rem;">${courseDateRange(c.startYear)}</span>
+                            </div>
+                            ${badges}
+                        </div>
+                        ${actionHtml}
+                    `;
+                    listEl.appendChild(li);
+                });
+            }
+
+            // Renderizar select de curso activo (solo para admin)
+            if (selectEl) {
+                selectEl.innerHTML = '';
+                sorted.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.startYear;
+                    opt.textContent = `${courseLabel(c.startYear)} (${courseDateRange(c.startYear)})`;
+                    if (c.startYear === window.app.config.startYear) opt.selected = true;
+                    selectEl.appendChild(opt);
+                });
+            }
+
+            // Actualizar display de solo lectura si el usuario es gestor
+            updateCourseReadOnlyDisplay();
+
+            lucide.createIcons();
+        }
+
+        window.app.switchActiveCourse = async function(startYearStr) {
+            const newYear = parseInt(startYearStr);
+            if (isNaN(newYear)) return;
+
+            // Solo admin puede cambiar de curso manualmente
+            if (!window.app.currentUser || window.app.currentUser.role !== 'admin') {
+                showNotification('Solo el administrador puede cambiar de curso.', 'error');
+                renderCoursesList();
+                return;
+            }
+
+            const courses = window.app.config.courses || [];
+            const target = courses.find(c => c.startYear === newYear);
+            if (!target) {
+                showNotification('Curso no encontrado.', 'error');
+                renderCoursesList();
+                return;
+            }
+
+            window.app.config.startYear = newYear;
+
+            // Cargar los datos del curso seleccionado desde Firestore
+            try {
+                const courseDoc = await db.collection('schoolConfig').doc('course_' + newYear).get();
+                if (courseDoc.exists) {
+                    const data = courseDoc.data();
+                    window.app.config.teachers = data.teachers || [];
+                    window.app.config.holidays = data.holidays || [];
+                    window.app.config.nonTeachingNotifiedDays = data.nonTeachingNotifiedDays || [];
+                    window.app.config.freeDispositionDays = data.freeDispositionDays || [];
+                    window.app.config.vacationPeriods = (data.vacationPeriods || []).map(p => ({ ...p, label: p.label || '' }));
+                    window.app.config.unavailableDays = data.unavailableDays || [];
+                    window.app.config.nonTeachingDays = data.nonTeachingDays || [];
+                    window.app.config.nonTeachingRanges = data.nonTeachingRanges || [];
+                    if (window.app.config.nonTeachingRanges.length === 0 && window.app.config.nonTeachingDays.length > 0) {
+                        window.app.config.nonTeachingRanges = window.app.config.nonTeachingDays.map(d => ({ start: d, end: d, label: '' }));
+                    }
+                    window.app.config.teachers.forEach(t => { if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2; });
+                    window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
+                } else {
+                    // Curso nuevo sin datos: resetear
+                    window.app.config.teachers = [];
+                    window.app.config.holidays = [];
+                    window.app.config.nonTeachingNotifiedDays = [];
+                    window.app.config.freeDispositionDays = [];
+                    window.app.config.vacationPeriods = [];
+                    window.app.config.unavailableDays = [];
+                    window.app.config.nonTeachingDays = [];
+                    window.app.config.nonTeachingRanges = [];
+                }
+
+                // Cargar solicitudes del curso
+                const reqSnapshot = await db.collection('requests')
+                    .where('courseYear', '==', newYear)
+                    .get();
+                window.app.requests = reqSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    date: doc.data().date,
+                    teacherId: doc.data().teacherId,
+                    type: doc.data().type
+                }));
+
+                // Guardar el startYear activo en config principal
+                await saveConfigToFirestore();
+
+                // Re-renderizar todo
+                renderAll();
+                renderCalendar();
+                window.app.renderSummaryTable();
+                window.app.renderReportTable();
+                applyRoleUI();
+
+                showNotification(`Curso ${courseLabel(newYear)} activado.`);
+            } catch (e) {
+                console.error('Error cambiando de curso:', e);
+                showNotification('Error al cambiar de curso: ' + e.message, 'error');
+            }
+        };
+
+        window.app.addCourse = async function() {
+            // Solo admin puede añadir cursos
+            if (!window.app.currentUser || window.app.currentUser.role !== 'admin') {
+                showNotification('Solo el administrador puede añadir cursos.', 'error');
+                return;
+            }
+
+            const input = document.getElementById('input-new-course-year');
+            const year = parseInt(input.value);
+            if (!year || year < 2000 || year > 2100) {
+                showNotification('Introduce un año válido (2000-2100).', 'error');
+                return;
+            }
+
+            const courses = window.app.config.courses || [];
+            if (courses.find(c => c.startYear === year)) {
+                showNotification(`El curso ${courseLabel(year)} ya existe.`, 'error');
+                return;
+            }
+
+            courses.push({ startYear: year });
+            window.app.config.courses = courses;
+
+            // Crear documento vacío para el nuevo curso
+            try {
+                await db.collection('schoolConfig').doc('course_' + year).set({
+                    startYear: year,
+                    teachers: [],
+                    holidays: [],
+                    nonTeachingNotifiedDays: [],
+                    freeDispositionDays: [],
+                    vacationPeriods: [],
+                    unavailableDays: [],
+                    nonTeachingDays: [],
+                    nonTeachingRanges: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                await saveConfigToFirestore();
+                input.value = '';
+                renderCoursesList();
+                showNotification(`Curso ${courseLabel(year)} creado correctamente.`);
+            } catch (e) {
+                console.error('Error creando curso:', e);
+                showNotification('Error al crear curso: ' + e.message, 'error');
+            }
+        };
+
+        window.app.deleteCourse = async function(startYear) {
+            // Solo admin puede eliminar cursos
+            if (!window.app.currentUser || window.app.currentUser.role !== 'admin') {
+                showNotification('Solo el administrador puede eliminar cursos.', 'error');
+                return;
+            }
+
+            const label = courseLabel(startYear);
+            const isCurrent = isCurrentCourse(startYear);
+
+            if (isCurrent) {
+                showNotification('No se puede eliminar el curso actual.', 'error');
+                return;
+            }
+
+            if (!confirm(`¿Eliminar el curso ${label}?\n\nSe generará y descargará automáticamente un archivo JSON con los datos del curso antes de eliminarlo.`)) return;
+
+            // Auto-exportar JSON del curso antes de eliminarlo
+            try {
+                const courseDoc = await db.collection('schoolConfig').doc('course_' + startYear).get();
+                const reqSnapshot = await db.collection('requests').where('courseYear', '==', startYear).get();
+
+                let exportConfig = { startYear: startYear, teachers: [], holidays: [], nonTeachingNotifiedDays: [], freeDispositionDays: [], vacationPeriods: [], unavailableDays: [], nonTeachingDays: [], nonTeachingRanges: [] };
+                let exportRequests = [];
+
+                if (courseDoc.exists) {
+                    exportConfig = { ...exportConfig, ...courseDoc.data() };
+                }
+                exportRequests = reqSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const exportData = JSON.stringify({ config: exportConfig, requests: exportRequests }, null, 2);
+                const blob = new Blob([exportData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const now = new Date();
+                const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+                a.download = `Backup_Curso_${label}_${ts}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showNotification(`Backup del curso ${label} descargado.`, 'info');
+            } catch (e) {
+                console.error('Error exportando curso:', e);
+                showNotification('Error al generar el backup: ' + e.message, 'error');
+                if (!confirm('No se pudo generar el backup. ¿Continuar con la eliminación de todos modos?')) return;
+            }
+
+            // Eliminar documento del curso
+            try {
+                await db.collection('schoolConfig').doc('course_' + startYear).delete();
+            } catch (e) {
+                console.error('Error eliminando documento del curso:', e);
+            }
+
+            // Eliminar solicitudes del curso
+            try {
+                const reqSnapshot = await db.collection('requests').where('courseYear', '==', startYear).get();
+                const batch = db.batch();
+                reqSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+                if (reqSnapshot.length > 0) await batch.commit();
+            } catch (e) {
+                console.error('Error eliminando solicitudes del curso:', e);
+            }
+
+            // Eliminar de la lista de cursos
+            window.app.config.courses = (window.app.config.courses || []).filter(c => c.startYear !== startYear);
+
+            // Si era el curso activo, cambiar al curso actual
+            if (window.app.config.startYear === startYear) {
+                const currentYear = getCurrentStartYear();
+                window.app.config.startYear = currentYear;
+                // Cargar datos del nuevo curso activo directamente (no usar switchActiveCourse para evitar bucle)
+                try {
+                    const courseDoc = await db.collection('schoolConfig').doc('course_' + currentYear).get();
+                    if (courseDoc.exists) {
+                        const cdata = courseDoc.data();
+                        window.app.config.teachers = cdata.teachers || [];
+                        window.app.config.holidays = cdata.holidays || [];
+                        window.app.config.nonTeachingNotifiedDays = cdata.nonTeachingNotifiedDays || [];
+                        window.app.config.freeDispositionDays = cdata.freeDispositionDays || [];
+                        window.app.config.vacationPeriods = (cdata.vacationPeriods || []).map(p => ({ ...p, label: p.label || '' }));
+                        window.app.config.unavailableDays = cdata.unavailableDays || [];
+                        window.app.config.nonTeachingDays = cdata.nonTeachingDays || [];
+                        window.app.config.nonTeachingRanges = cdata.nonTeachingRanges || [];
+                        window.app.config.teachers.forEach(t => { if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2; });
+                        window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
+                    } else {
+                        window.app.config.teachers = [];
+                        window.app.config.holidays = [];
+                        window.app.config.nonTeachingNotifiedDays = [];
+                        window.app.config.freeDispositionDays = [];
+                        window.app.config.vacationPeriods = [];
+                        window.app.config.unavailableDays = [];
+                        window.app.config.nonTeachingDays = [];
+                        window.app.config.nonTeachingRanges = [];
+                    }
+                    // Recargar solicitudes del nuevo curso
+                    const reqSnapshot = await db.collection('requests').where('courseYear', '==', currentYear).get();
+                    window.app.requests = reqSnapshot.docs.map(rd => ({
+                        id: rd.id, date: rd.data().date, teacherId: rd.data().teacherId, type: rd.data().type
+                    }));
+                } catch(e) { console.error('Error cargando curso tras eliminación:', e); }
+
+                await saveConfigToFirestore();
+                renderAll();
+                renderCalendar();
+                window.app.renderSummaryTable();
+                window.app.renderReportTable();
+                renderCoursesList();
+                applyRoleUI();
+            } else {
+                await saveConfigToFirestore();
+                renderCoursesList();
+            }
+
+            showNotification(`Curso ${label} eliminado correctamente.`);
         };
 
         // ================================================
@@ -3158,14 +3541,6 @@
             lucide.createIcons();
         };
 
-        window.app.checkDateConflict = (dateStr, type) => {
-            const target = DAY_TYPE_MAP[type];
-            for (const t of ALL_DAY_TYPES) {
-                if (t !== target && (window.app.config[t] || []).includes(dateStr)) return true;
-            }
-            return false;
-        };
-
         window.app.removeHoliday = async (type, date) => {
             const target = DAY_TYPE_MAP[type];
             window.app.config[target] = (window.app.config[target] || []).filter(d => d !== date);
@@ -3227,7 +3602,6 @@
                 if (!window.app.config.nonTeachingRanges) window.app.config.nonTeachingRanges = [];
                 window.app.config.nonTeachingRanges.push({ start: dStart, end: dEnd, label: label });
                 window.app.config.nonTeachingRanges.sort((a, b) => a.start.localeCompare(b.start));
-                window.app.editingRangeIndex = -1;
             } else {
                 removeDateFromOtherCategories(ds, target);
                 if (!window.app.config[target].includes(ds)) window.app.config[target].push(ds);
@@ -3236,7 +3610,9 @@
             renderAll();
             renderCalendar();
             await saveConfigToFirestore();
-            showNotification(window.app.editingRangeIndex >= 0 ? 'Tramo actualizado correctamente.' : 'Fecha añadida correctamente.');
+            const wasRangeEditing = window.app.editingRangeIndex >= 0;
+            window.app.editingRangeIndex = -1;
+            showNotification(wasRangeEditing ? 'Tramo actualizado correctamente.' : 'Fecha añadida correctamente.');
         };
 
         // Enruta al handler correcto según el tipo (festivo/día especial vs período vacacional)
@@ -3326,17 +3702,18 @@
                 window.app.config.vacationPeriods.splice(editIdx, 1);
             }
 
-            if (!window.app.config.vacationPeriods) window.app.config.vacationPeriods = [];
+            if (!window.app.config.vacationPeriods) window.app.vacationPeriods = [];
             const label = (document.getElementById('input-holiday-label').value || '').trim();
             window.app.config.vacationPeriods.push({ start: dStart, end: dEnd, label: label });
             window.app.config.vacationPeriods.sort((a, b) => a.start.localeCompare(b.start));
-            window.app.editingRangeIndex = -1;
 
             window.app.closeModal('modal-holiday');
             renderAll();
             renderCalendar();
             await saveConfigToFirestore();
-            showNotification(editIdx >= 0 ? 'Período vacacional actualizado.' : 'Período vacacional añadido.');
+            const wasEditing = editIdx >= 0;
+            window.app.editingRangeIndex = -1;
+            showNotification(wasEditing ? 'Período vacacional actualizado.' : 'Período vacacional añadido.');
         };
 
         window.app.removeVacationPeriod = async (index) => {
@@ -3550,7 +3927,6 @@
             const MIN_BUSINESS_DAYS = 15;
 
             const noticeWarning      = document.getElementById('notice-warning');
-            const noticeDaysRemaining = document.getElementById('notice-days-remaining');
             const btnSubmitRequest   = document.getElementById('btn-submit-request');
             const bulkActionContainer = document.getElementById('bulk-action-container');
 
@@ -3877,6 +4253,7 @@
                     date: ds,
                     teacherId: tid,
                     type: type,
+                    courseYear: window.app.config.startYear,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 // No hacemos push manual: el onSnapshot listener ya actualiza
@@ -3940,6 +4317,7 @@
                     date: ds,
                     teacherId: t.id,
                     type: type,
+                    courseYear: window.app.config.startYear,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 add++;
@@ -4104,6 +4482,13 @@
                         cfg.nonTeachingRanges = cfg.nonTeachingDays.map(d => ({ start: d, end: d, label: '' }));
                     }
 
+                    // Migración: si no hay courses, crear a partir del startYear
+                    if (!cfg.courses || cfg.courses.length === 0) {
+                        cfg.courses = [{ startYear: cfg.startYear || getCurrentStartYear() }];
+                    }
+                    // Asegurar que el startYear sea válido
+                    if (!cfg.startYear) cfg.startYear = getCurrentStartYear();
+
                     window.app.config = cfg;
                     window.app.config.teachers.forEach(t => { if (t.maxRetributedDays === undefined) t.maxRetributedDays = 2; });
                     window.app.config.teachers.sort((a, b) => a.name.localeCompare(b.name));
@@ -4117,6 +4502,7 @@
                         const { id, ...rest } = r;
                         batch.set(db.collection('requests').doc(), {
                             ...rest,
+                            courseYear: rest.courseYear || window.app.config.startYear,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                     });
@@ -4140,8 +4526,11 @@
         // RENDERIZADO
         // ================================================
         function renderAll() {
-            document.getElementById('input-start-year').value = window.app.config.startYear;
-            document.getElementById('text-end-year').innerText = `→ Finaliza en Junio de ${window.app.config.startYear + 1}`;
+            // Migración: inicializar cursos si no existen
+            if (!window.app.config.courses || window.app.config.courses.length === 0) {
+                window.app.config.courses = [{ startYear: window.app.config.startYear }];
+            }
+            renderCoursesList();
             const listT = document.getElementById('list-teachers');
             listT.innerHTML = '';
             document.getElementById('teacher-count').innerText = `Listado (${window.app.config.teachers.length})`;
