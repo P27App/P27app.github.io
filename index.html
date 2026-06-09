@@ -789,8 +789,8 @@
                                         </div>
                                         <div class="col-sm-4">
                                             <select id="new-user-role" class="form-select form-select-sm">
-                                                <option value="user">Usuario</option>
-                                                <option value="gestor">Gestor</option>
+                                                <option value="user">Solo lectura</option>
+                                                <option value="gestor">Usuario</option>
                                                 <option value="admin">Admin</option>
                                             </select>
                                         </div>
@@ -1429,8 +1429,8 @@
                     <div>
                         <label class="form-label fw-medium small">Rol</label>
                         <select id="edit-user-role" class="form-select form-select-sm">
-                            <option value="user">Usuario</option>
-                            <option value="gestor">Gestor</option>
+                            <option value="user">Solo lectura</option>
+                            <option value="gestor">Usuario</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
@@ -2280,8 +2280,12 @@
         // ================================================
         // FUNCIONES DE PERMISOS POR ROL
         // ================================================
-        function isUsuarioRole() {
+        function isSoloLecturaRole() {
             return window.app.currentUser && window.app.currentUser.role === 'user';
+        }
+        // Alias de compatibilidad (el valor interno 'user' en Firestore = perfil Solo lectura)
+        function isUsuarioRole() {
+            return isSoloLecturaRole();
         }
 
         function applyRoleUI() {
@@ -2312,7 +2316,7 @@
             const courseReadOnly = document.getElementById('course-active-readonly');
             if (courseReadOnly) courseReadOnly.classList.add('hidden');
 
-            // ---- Perfil USUARIO (nuevo, con restricciones) ----
+            // ---- Perfil SOLO LECTURA (máximo de restricciones) ----
             if (role === 'user') {
                 // Ocultar secciones 1, 2, 3, 10 de configuración
                 document.getElementById('accordion-users').classList.add('hidden');
@@ -2339,7 +2343,7 @@
                 // Modificar renderizado de listas para ocultar botones de eliminar
                 applyReadOnlyRender();
             }
-            // ---- Perfil GESTOR (acceso completo salvo gestión de usuarios y cursos) ----
+            // ---- Perfil USUARIO (acceso completo salvo gestión de usuarios y cursos) ----
             else if (role === 'gestor') {
                 // Ocultar sección 1 de gestión de usuarios
                 document.getElementById('accordion-users').classList.add('hidden');
@@ -2413,8 +2417,8 @@
             document.getElementById('app-loader').style.opacity = '1';
 
             // Mostrar info del usuario
-            const roleTextMap = { 'admin': 'Admin', 'gestor': 'Gestor', 'user': 'Usuario' };
-            const roleText = roleTextMap[window.app.currentUser.role] || 'Usuario';
+            const roleTextMap = { 'admin': 'Admin', 'gestor': 'Usuario', 'user': 'Solo lectura' };
+            const roleText = roleTextMap[window.app.currentUser.role] || 'Solo lectura';
             document.getElementById('user-info-badge').textContent = `${roleText}: ${window.app.currentUser.displayName}`;
             document.getElementById('user-info-badge').classList.remove('hidden');
             document.getElementById('btn-logout').classList.remove('hidden');
@@ -2422,8 +2426,8 @@
             // Mostrar botón de descarga del manual según el rol
             const manualUrls = {
                 'admin': 'Manual_Admin.pdf',
-                'gestor': 'Manual_Gestor.pdf',
-                'user': 'Manual_Usuario.pdf'
+                'gestor': 'Manual_Usuario.pdf',
+                'user': 'Manual_SoloLectura.pdf'
             };
             const btnManual = document.getElementById('btn-manual-download');
             btnManual.href = manualUrls[window.app.currentUser.role] || manualUrls['user'];
@@ -2736,8 +2740,8 @@
                 const roleBadge = user.role === 'admin'
                     ? '<span class="badge bg-danger">Admin</span>'
                     : user.role === 'gestor'
-                    ? '<span class="badge bg-info">Gestor</span>'
-                    : '<span class="badge bg-secondary">Usuario</span>';
+                    ? '<span class="badge bg-info">Usuario</span>'
+                    : '<span class="badge bg-secondary">Solo lectura</span>';
                 li.innerHTML = `
                     <div class="d-flex align-items-center gap-2">
                         <i data-lucide="user" style="width:14px; color:#2563EB;"></i>
@@ -2801,7 +2805,7 @@
                 document.getElementById('new-user-username').value = '';
                 document.getElementById('new-user-displayname').value = '';
                 document.getElementById('new-user-password').value = '';
-                document.getElementById('new-user-role').value = 'gestor';
+                document.getElementById('new-user-role').value = 'gestor'; // Valor por defecto: Usuario
 
                 msgEl.textContent = `Usuario "${displayName}" creado correctamente.`;
                 msgEl.className = 'small fw-bold text-success mt-2';
@@ -2903,7 +2907,7 @@
                     window.app.currentUser.displayName = displayName;
                     window.app.currentUser.role = role;
                     sessionStorage.setItem('app_user', JSON.stringify(window.app.currentUser));
-                    document.getElementById('user-info-badge').textContent = `${role === 'admin' ? 'Admin' : role === 'gestor' ? 'Gestor' : 'Usuario'}: ${displayName}`;
+                    document.getElementById('user-info-badge').textContent = `${role === 'admin' ? 'Admin' : role === 'gestor' ? 'Usuario' : 'Solo lectura'}: ${displayName}`;
                     applyRoleUI();
                 }
 
@@ -3048,7 +3052,7 @@
         // TABS Y NAVEGACIÓN
         // ================================================
         window.app.switchTab = (tab) => {
-            // Perfil usuario: no puede ver Informes
+            // Perfil Solo lectura: no puede ver Informes
             if (window.app.currentUser && window.app.currentUser.role === 'user' && tab === 'stats') {
                 showNotification('No tienes acceso a esta sección', 'error');
                 return;
@@ -3093,7 +3097,7 @@
             return `01/09/${startYear} → 31/08/${startYear + 1}`;
         }
 
-        // Actualizar la pantalla de solo lectura del curso activo (para gestor)
+        // Actualizar la pantalla de solo lectura del curso activo (para Usuario)
         function updateCourseReadOnlyDisplay() {
             const labelEl = document.getElementById('course-active-label');
             const rangeEl = document.getElementById('course-active-range');
@@ -3165,7 +3169,7 @@
                 });
             }
 
-            // Actualizar display de solo lectura si el usuario es gestor
+            // Actualizar display de solo lectura si el perfil es Usuario
             updateCourseReadOnlyDisplay();
 
             lucide.createIcons();
@@ -3976,8 +3980,8 @@
         // ── Wrapper seguro para clics en celdas del calendario ──
         window.app._safeCellClick = function(ds) {
             try {
-                // Perfil usuario: mostrar modal simplificado sin nombres
-                if (isUsuarioRole()) {
+                // Perfil Solo lectura: mostrar modal simplificado sin nombres
+                if (isSoloLecturaRole()) {
                     window.app.openUsuarioDaySummary(ds);
                     return;
                 }
@@ -4656,7 +4660,7 @@
                 const reqs = window.app.requests.filter(r => r.date === dateStr);
                 if (reqs.length > 0) cellClass += ' cell-active';
 
-                const tooltip = isUsuarioRole() ? '' : buildTooltip(dateStr, isWeekend, isHoliday, isNTNotified, isFreeDisp, isVacation, isUnavail, isNonTeach, reqs);
+                const tooltip = isSoloLecturaRole() ? '' : buildTooltip(dateStr, isWeekend, isHoliday, isNTNotified, isFreeDisp, isVacation, isUnavail, isNonTeach, reqs);
                 const canClick = !isWeekend && !isHoliday && !isNTNotified && !isFreeDisp && !isVacation && !isUnavail && (!isNonTeach || reqs.length > 0);
                 const onclickAttr = canClick ? ` onclick="window.app._safeCellClick('${dateStr}')"` : '';
 
@@ -4700,8 +4704,8 @@
             }
 
             reqs.forEach(r => {
-                // Perfil usuario: no mostrar nombres de solicitantes en tooltip
-                if (isUsuarioRole()) {
+                // Perfil Solo lectura: no mostrar nombres de solicitantes en tooltip
+                if (isSoloLecturaRole()) {
                     const lbl = { 'paid_teaching': 'Retr.Lect.', 'paid_non_teaching': 'Retr.NO Lect.', 'unpaid': 'No Retr.' }[r.type] || r.type;
                     parts.push(lbl);
                 } else {
