@@ -1662,7 +1662,7 @@
 <!-- PWA: Service Worker Registration -->
 <script>
     // Control de versiones - DEBE COINCIDIR con sw.js
-    const APP_VERSION = '2.0.0';
+    const APP_VERSION = '2.10.0';
     let newServiceWorker = null;
     let registrationInstance = null;
     let isUpdating = false;
@@ -4661,7 +4661,12 @@
                 if (reqs.length > 0) cellClass += ' cell-active';
 
                 const tooltip = isSoloLecturaRole() ? '' : buildTooltip(dateStr, isWeekend, isHoliday, isNTNotified, isFreeDisp, isVacation, isUnavail, isNonTeach, reqs);
-                const canClick = !isWeekend && !isHoliday && !isNTNotified && !isFreeDisp && !isVacation && !isUnavail && (!isNonTeach || reqs.length > 0);
+                // FIX: Permitir clic también en días Laborables No Lectivos (amarillo)
+                // aunque no tengan solicitudes grabadas, para poder registrar la primera
+                // solicitud de tipo "Retribuido NO LECTIVO". Antes el bloqueo
+                // (!isNonTeach || reqs.length > 0) impedía abrir el modal en celdas
+                // no lectivas vacías (ej. 29 y 30 de junio).
+                const canClick = !isWeekend && !isHoliday && !isNTNotified && !isFreeDisp && !isVacation && !isUnavail;
                 const onclickAttr = canClick ? ` onclick="window.app._safeCellClick('${dateStr}')"` : '';
 
                 html += `<div class="${cellClass}" data-date="${dateStr}"${onclickAttr} ${tooltip}>`;
