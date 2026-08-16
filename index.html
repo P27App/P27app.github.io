@@ -711,7 +711,7 @@
 
     <div id="custom-tooltip"></div>
 
-    <header class="bg-blue-700 text-white py-3 shadow">
+    <header class="hidden bg-blue-700 text-white py-3 shadow">
         <div class="container-custom d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
                 <h1 class="h4 fw-bold mb-0 d-flex align-items-center gap-2">
@@ -731,7 +731,7 @@
         </div>
     </header>
 
-    <nav class="bg-white shadow-sm sticky-top z-1">
+    <nav class="hidden bg-white shadow-sm sticky-top z-1">
         <div class="container-custom d-flex">
             <button onclick="window.app.switchTab('config')" id="tab-config" class="tab-btn tab-active flex-fill">
                 <div class="d-flex justify-content-center align-items-center gap-2"><i data-lucide="settings" style="width:16px"></i> Configuración</div>
@@ -748,7 +748,7 @@
         </div>
     </nav>
 
-    <main class="container-custom py-4 flex-grow-1 position-relative d-flex flex-column">
+    <main class="hidden container-custom py-4 flex-grow-1 position-relative d-flex flex-column">
         
         <div id="notification-area" class="position-fixed bottom-0 end-0 p-4 z-3 hidden">
             <div id="notification-msg" class="alert shadow-lg fw-bold text-white mb-0"></div>
@@ -1662,7 +1662,7 @@
 <!-- PWA: Service Worker Registration -->
 <script>
     // Control de versiones - DEBE COINCIDIR con sw.js
-    const APP_VERSION = '2.10.0';
+    const APP_VERSION = '2.11.0';
     let newServiceWorker = null;
     let registrationInstance = null;
     let isUpdating = false;
@@ -2258,6 +2258,11 @@
                     document.getElementById('btn-manual-download').classList.add('hidden');
                     document.getElementById('accordion-users').classList.add('hidden');
 
+                    // Ocultar la interfaz principal (header, nav, main)
+                    document.querySelector('header').classList.add('hidden');
+                    document.querySelector('nav').classList.add('hidden');
+                    document.querySelector('main').classList.add('hidden');
+
                     // Resetear botón de login a estado por defecto
                     const loginBtn = document.getElementById('login-btn');
                     loginBtn.disabled = false;
@@ -2415,6 +2420,11 @@
             document.getElementById('login-overlay').classList.add('hidden');
             document.getElementById('app-loader').classList.remove('hidden');
             document.getElementById('app-loader').style.opacity = '1';
+
+            // Mostrar la interfaz principal (header, nav, main)
+            document.querySelector('header').classList.remove('hidden');
+            document.querySelector('nav').classList.remove('hidden');
+            document.querySelector('main').classList.remove('hidden');
 
             // Mostrar info del usuario
             const roleTextMap = { 'admin': 'Admin', 'gestor': 'Usuario', 'user': 'Solo lectura' };
@@ -2601,6 +2611,11 @@
                     document.getElementById('btn-logout').classList.add('hidden');
                     document.getElementById('btn-manual-download').classList.add('hidden');
                     document.getElementById('accordion-users').classList.add('hidden');
+
+                    // Ocultar la interfaz principal (header, nav, main)
+                    document.querySelector('header').classList.add('hidden');
+                    document.querySelector('nav').classList.add('hidden');
+                    document.querySelector('main').classList.add('hidden');
 
                     // Mostrar login con error descriptivo
                     showLoginScreen();
